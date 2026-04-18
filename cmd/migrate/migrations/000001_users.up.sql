@@ -14,7 +14,6 @@ CREATE TABLE users (
     role user_role NOT NULL DEFAULT 'VIEWER',
 
     is_active BOOLEAN DEFAULT TRUE,
-    is_verified BOOLEAN DEFAULT FALSE,
 
     created_at TIMESTAMP NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMP NOT NULL DEFAULT NOW()

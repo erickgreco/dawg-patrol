@@ -3,6 +3,7 @@ package users
 import (
 	"time"
 
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
 )
 
@@ -28,9 +29,8 @@ type User struct {
 	Username     string    `json:"username"`
 	Email        string    `json:"email"`
 	PasswordHash string    `json:"password_hash"`
-	UserRole     Role      `json:"user_role"`
+	UserRole     Role      `json:"role"`
 	Active       bool      `json:"is_active"`
-	Verified     bool      `json:"is_verified"`
 	CreatedAt    time.Time `json:"created_at"`
 	UpdatedAt    time.Time `json:"updated_at"`
 }
@@ -38,8 +38,25 @@ type User struct {
 // Payload to be returned to user
 type RegisteredUser struct {
 	Username  string    `json:"username"`
-	UserRole  Role      `json:"user_role"`
+	UserRole  Role      `json:"role"`
 	Active    bool      `json:"is_active"`
-	Verified  bool      `json:"is_verified"`
 	CreatedAt time.Time `json:"created_at"`
+}
+
+// Payload retrived from /login
+type LoginRequest struct {
+	Email    string `json:"email" validate:"required,max=250"`
+	Password string `json:"password" validate:"required,max=30"`
+}
+
+// Data used to create token
+type Claims struct {
+	Sub  string `json:"sub"`
+	Role Role   `json:"role"`
+	jwt.RegisteredClaims
+}
+
+// Payload to return
+type AuthResponse struct {
+	Token string `json:"token"`
 }

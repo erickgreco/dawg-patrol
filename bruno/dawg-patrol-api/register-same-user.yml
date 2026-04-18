@@ -1,0 +1,26 @@
+info:
+  name: register-same-user
+  type: http
+  seq: 3
+
+http:
+  method: POST
+  url: http://localhost:8080/v1/register
+  headers:
+    - name: Content-Type
+      value: application/json
+  body:
+    type: json
+    data: |-
+      {
+        "username": "test2",
+        "email": "test2@mail.com",
+        "password": "testpassword"
+      }
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
