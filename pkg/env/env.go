@@ -1,6 +1,7 @@
 package env
 
 import (
+	"log"
 	"os"
 	"strconv"
 )
@@ -24,4 +25,12 @@ func GetInt(key string, fallback int) int {
 		return fallback
 	}
 	return valAsInt
+}
+
+func GetJWTKey(key string) string {
+	val, ok := os.LookupEnv(key)
+	if !ok || val == "" {
+		log.Fatalf("%s is required", key)
+	}
+	return val
 }

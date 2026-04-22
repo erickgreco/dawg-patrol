@@ -4,6 +4,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/erickgreco/dawg-patrol/internal/auth"
 	"github.com/erickgreco/dawg-patrol/internal/users"
 	"github.com/erickgreco/dawg-patrol/pkg/db"
 	"github.com/erickgreco/dawg-patrol/pkg/env"
@@ -12,8 +13,17 @@ import (
 const version = "0.0.1"
 
 func main() {
+
+	expiryStr := env.GetString("JWT_EXPIRY", "30m")
+	expiry, err := time.ParseDuration(expiryStr)
+	if err != nil {
+		log.Fatal("invalid JWT_EXPIRY")
+	}
+
 	cfg := config{
-		addr: env.GetString("ADDR", ":8080"),
+		addr:      env.GetString("ADDR", ":8080"),
+		jwtSecret: env.GetJWTKey("JWT_SECRET"),
+		jwtExpiry: expiry,
 	}
 
 	dbcfg := db.DBConfig{
@@ -34,7 +44,8 @@ func main() {
 
 	// Wiring dependencies
 	userstore := users.NewStore(dbpool)
-	userservice := users.NewService(userstore)
+	tokenService := auth.NewTokenService(cfg.jwtSecret, cfg.jwtExpiry)
+	userservice := users.NewService(userstore, tokenService)
 	userhandler := users.NewHandler(userservice)
 
 	app := &application{

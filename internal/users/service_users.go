@@ -3,16 +3,11 @@ package users
 import (
 	"context"
 	"errors"
-	"os"
-	"time"
 
+	"github.com/erickgreco/dawg-patrol/internal/auth"
 	"github.com/erickgreco/dawg-patrol/pkg/myerrors"
-	"github.com/golang-jwt/jwt/v5"
 	"golang.org/x/crypto/bcrypt"
 )
-
-// Variable created for tokens creation
-var Issuer = "dawg-patrol-api"
 
 type UsersRepo interface {
 	CreateUser(context.Context, *User) error
@@ -21,12 +16,14 @@ type UsersRepo interface {
 }
 
 type Service struct {
-	store UsersRepo
+	store        UsersRepo
+	tokenService *auth.TokenService
 }
 
-func NewService(store UsersRepo) *Service {
+func NewService(store UsersRepo, tokenService *auth.TokenService) *Service {
 	return &Service{
-		store: store,
+		store:        store,
+		tokenService: tokenService,
 	}
 }
 
@@ -72,12 +69,11 @@ func (serv *Service) UserRegistration(ctx context.Context, data *Registration) (
 	}, nil
 }
 
-// llamar a getbyemail -done
-// comparar hashed password con user input password -done
-// verificar si el usuario esta activo -done
-// crear claims
-// crear token con metodo de firma
-// firmarlo con mi secret
+/*
+	 This method retrieves userLogIn info from DB, compares hashed password
+		with password input, verifies if user is active and responds with a token
+		generated with serv.TokenService.Generate
+*/
 func (serv *Service) UserLogIn(ctx context.Context, data *LoginRequest) (*AuthResponse, error) {
 	user, err := serv.store.GetByEmail(ctx, data.Email)
 	if err != nil {
@@ -87,42 +83,25 @@ func (serv *Service) UserLogIn(ctx context.Context, data *LoginRequest) (*AuthRe
 		return nil, err
 	}
 
-	err = bcrypt.CompareHashAndPassword(
+	if err := bcrypt.CompareHashAndPassword(
 		[]byte(user.PasswordHash),
 		[]byte(data.Password),
-	)
-	if err != nil {
+	); err != nil {
 		return nil, myerrors.ErrInvalidCredentials
 	}
 
-	if user.Active == false {
+	if !user.Active {
 		return nil, myerrors.ErrInvalidCredentials
 	}
 
-	signingKey := []byte(os.Getenv("JWT_SECRET"))
-
-	now := time.Now()
-
-	claims := Claims{
-		Sub:  user.ID.String(),
-		Role: user.UserRole,
-		RegisteredClaims: jwt.RegisteredClaims{
-			ExpiresAt: jwt.NewNumericDate(now.Add(30 * time.Minute)),
-			IssuedAt:  jwt.NewNumericDate(now),
-			Issuer:    Issuer,
-		},
-	}
-
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-
-	ss, err := token.SignedString(signingKey)
+	token, err := serv.tokenService.Generate(user.ID.String(), string(user.UserRole))
 	if err != nil {
-		return nil, err
+		return nil, myerrors.ErrTokenGeneration
 	}
 
-	resp := &AuthResponse{
-		Token: ss,
-	}
-
-	return resp, nil
+	return &AuthResponse{
+		Token: token,
+		ID:    user.ID,
+		Role:  user.UserRole,
+	}, nil
 }

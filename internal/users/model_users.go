@@ -3,7 +3,6 @@ package users
 import (
 	"time"
 
-	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
 )
 
@@ -11,7 +10,7 @@ import (
 type Registration struct {
 	Username string `json:"username" validate:"required,max=30"`
 	Email    string `json:"email" validate:"required,max=250"`
-	Password string `json:"password" validate:"required,max=30"`
+	Password string `json:"password" validate:"required,min=12,max=30"`
 }
 
 // TODO: work with tokens
@@ -49,14 +48,9 @@ type LoginRequest struct {
 	Password string `json:"password" validate:"required,max=30"`
 }
 
-// Data used to create token
-type Claims struct {
-	Sub  string `json:"sub"`
-	Role Role   `json:"role"`
-	jwt.RegisteredClaims
-}
-
 // Payload to return
 type AuthResponse struct {
-	Token string `json:"token"`
+	Token string    `json:"token"`
+	ID    uuid.UUID `json:"id"`
+	Role  Role      `json:"role"`
 }

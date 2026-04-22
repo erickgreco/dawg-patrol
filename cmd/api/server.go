@@ -16,7 +16,9 @@ type application struct {
 }
 
 type config struct {
-	addr string
+	addr      string
+	jwtSecret string
+	jwtExpiry time.Duration
 }
 
 // Method that mounts server router as well as register all server routes

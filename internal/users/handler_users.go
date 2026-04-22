@@ -38,11 +38,12 @@ func (h *Handler) RegisterUserHandler(w http.ResponseWriter, r *http.Request) {
 
 	resp, err := h.service.UserRegistration(ctx, &payload)
 	if err != nil {
-		if errors.Is(err, myerrors.ErrEmailAlreadyExists) {
+		switch {
+		case errors.Is(err, myerrors.ErrEmailAlreadyExists):
 			myerrors.ConflictResponse(w, r, myerrors.ErrEmailAlreadyExists)
-			return
+		default:
+			myerrors.InternalServerError(w, r, err)
 		}
-		myerrors.InternalServerError(w, r, err)
 		return
 	}
 
