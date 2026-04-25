@@ -1,8 +1,10 @@
 package auth
 
 import (
+	"strings"
 	"time"
 
+	"github.com/erickgreco/dawg-patrol/pkg/myerrors"
 	"github.com/golang-jwt/jwt/v5"
 )
 
@@ -53,4 +55,34 @@ func (t *TokenService) Generate(sub string, role string) (string, error) {
 		return "", err
 	}
 	return ss, nil
+}
+
+/*
+This method validates if the input is empty, parses input token with
+claims, (internally it verifies jwt secret key, exp and issuer),
+validates if token is valid and returns claims(sub + role)
+*/
+func (t *TokenService) Validate(tokenString string) (*Claims, error) {
+	if strings.TrimSpace(tokenString) == "" {
+		return nil, myerrors.ErrEmptyToken
+	}
+
+	claims := &Claims{}
+
+	token, err := jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (any, error) {
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, myerrors.ErrInvalidSigningMethod
+		}
+
+		return []byte(t.jwtSecret), nil
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	if !token.Valid {
+		return nil, myerrors.ErrInvalidToken
+	}
+
+	return claims, nil
 }

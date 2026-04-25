@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/erickgreco/dawg-patrol/internal/auth"
+	"github.com/erickgreco/dawg-patrol/internal/handlers"
 	"github.com/erickgreco/dawg-patrol/internal/users"
 	"github.com/erickgreco/dawg-patrol/pkg/db"
 	"github.com/erickgreco/dawg-patrol/pkg/env"
@@ -47,10 +48,13 @@ func main() {
 	tokenService := auth.NewTokenService(cfg.jwtSecret, cfg.jwtExpiry)
 	userservice := users.NewService(userstore, tokenService)
 	userhandler := users.NewHandler(userservice)
+	homeHandler := handlers.NewHomeHandler(userservice)
 
 	app := &application{
-		config: cfg,
-		users:  userhandler,
+		config:     cfg,
+		users:      userhandler,
+		middleware: tokenService,
+		handlers:   homeHandler,
 	}
 
 	mux := app.mount()

@@ -5,14 +5,18 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/erickgreco/dawg-patrol/internal/auth"
+	"github.com/erickgreco/dawg-patrol/internal/handlers"
 	"github.com/erickgreco/dawg-patrol/internal/users"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 )
 
 type application struct {
-	config config
-	users  *users.Handler
+	config     config
+	users      *users.Handler
+	middleware *auth.TokenService
+	handlers   *handlers.HomeHandler
 }
 
 type config struct {
@@ -41,6 +45,13 @@ func (app *application) mount() http.Handler {
 		r.Route("/login", func(r chi.Router) {
 			r.Post("/", app.users.LogInHandler)
 		})
+
+		r.Route("/home", func(r chi.Router) {
+			r.Use(app.middleware.AuthMiddleware)
+
+			r.Get("/dashboard", app.handlers.HomePage)
+		})
+
 	})
 
 	return r

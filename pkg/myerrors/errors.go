@@ -9,10 +9,14 @@ import (
 )
 
 var (
-	ErrEmailAlreadyExists = errors.New("error, email already exists")
-	ErrDataNotFound       = errors.New("error, no data found")
-	ErrInvalidCredentials = errors.New("error, invalid credentials")
-	ErrTokenGeneration    = errors.New("error, token generation failed")
+	ErrEmailAlreadyExists   = errors.New("error, email already exists")
+	ErrDataNotFound         = errors.New("error, no data found")
+	ErrInvalidCredentials   = errors.New("error, invalid credentials")
+	ErrTokenGeneration      = errors.New("error, token generation failed")
+	ErrEmptyToken           = errors.New("error, empty token")
+	ErrInvalidToken         = errors.New("error, token is invalid")
+	ErrInvalidSigningMethod = errors.New("error, invalid signing method")
+	ErrParsingClaims        = errors.New("error, unable to parse claims")
 )
 
 func InternalServerError(w http.ResponseWriter, r *http.Request, err error) {
