@@ -33,8 +33,8 @@ does not know anything bout business logic nor http methods
 */
 func (s *UsersStore) CreateUser(ctx context.Context, user *User) error {
 	query := `
-		INSERT INTO users (username, email, password_hash, role, is_active)
-		VALUES($1, $2, $3, $4, $5)
+		INSERT INTO users (id, username, email, password_hash, role, is_active)
+		VALUES($1, $2, $3, $4, $5, $6)
 		RETURNING id, created_at, updated_at
 	`
 
@@ -44,6 +44,7 @@ func (s *UsersStore) CreateUser(ctx context.Context, user *User) error {
 	err := s.db.QueryRow(
 		ctx,
 		query,
+		user.ID,
 		user.Username,
 		user.Email,
 		user.PasswordHash,

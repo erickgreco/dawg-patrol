@@ -13,7 +13,6 @@ type Registration struct {
 	Password string `json:"password" validate:"required,min=12,max=30"`
 }
 
-// TODO: work with tokens
 type Role string
 
 const (
@@ -36,9 +35,8 @@ type User struct {
 
 // Payload to be returned to user
 type RegisteredUser struct {
+	ID        uuid.UUID `json:"id"`
 	Username  string    `json:"username"`
-	UserRole  Role      `json:"role"`
-	Active    bool      `json:"is_active"`
 	CreatedAt time.Time `json:"created_at"`
 }
 

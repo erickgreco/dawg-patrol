@@ -10,6 +10,7 @@ import (
 	"github.com/erickgreco/dawg-patrol/internal/users"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"github.com/go-chi/httprate"
 )
 
 type application struct {
@@ -39,17 +40,20 @@ func (app *application) mount() http.Handler {
 		r.Get("/health", app.healthCheckHandler)
 
 		r.Route("/register", func(r chi.Router) {
+			r.Use(httprate.Limit(10, time.Minute, httprate.WithKeyFuncs(httprate.KeyByIP, httprate.KeyByEndpoint)))
 			r.Post("/", app.users.RegisterUserHandler)
 		})
 
 		r.Route("/login", func(r chi.Router) {
+			r.Use(httprate.Limit(5, time.Minute, httprate.WithKeyFuncs(httprate.KeyByIP, httprate.KeyByEndpoint)))
 			r.Post("/", app.users.LogInHandler)
 		})
 
-		r.Route("/home", func(r chi.Router) {
+		r.Route("/api", func(r chi.Router) {
 			r.Use(app.middleware.AuthMiddleware)
+			r.Use(httprate.Limit(100, time.Minute, httprate.WithKeyFuncs(app.middleware.KeyByUserID, httprate.KeyByEndpoint)))
 
-			r.Get("/dashboard", app.handlers.HomePage)
+			r.Get("/home", app.handlers.HomePage)
 		})
 
 	})

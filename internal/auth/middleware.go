@@ -59,3 +59,13 @@ func GetClaimsFromCtx(r *http.Request) *Claims {
 	claims, _ := r.Context().Value(claimsCtx).(*Claims)
 	return claims
 }
+
+func (mw *TokenService) KeyByUserID(r *http.Request) (string, error) {
+	claims := GetClaimsFromCtx(r)
+
+	if claims == nil {
+		return "unknown", nil
+	}
+
+	return claims.ID, nil
+}
