@@ -14,6 +14,7 @@ type UsersRepo interface {
 	CreateUser(context.Context, *User) error
 	EmailExists(ctx context.Context, email string) (bool, error)
 	GetByEmail(ctx context.Context, email string) (*User, error)
+	GetSummaryByID(ctx context.Context, ID uuid.UUID) (*UserSummary, error)
 }
 
 type Service struct {
@@ -21,7 +22,7 @@ type Service struct {
 	tokenService *auth.TokenService
 }
 
-func NewService(store UsersRepo, tokenService *auth.TokenService) *Service {
+func NewUserService(store UsersRepo, tokenService *auth.TokenService) *Service {
 	return &Service{
 		store:        store,
 		tokenService: tokenService,
@@ -64,6 +65,7 @@ func (serv *Service) UserRegistration(ctx context.Context, data *Registration) (
 	return &RegisteredUser{
 		ID:        user.ID,
 		Username:  user.Username,
+		UserRole:  user.UserRole,
 		CreatedAt: user.CreatedAt,
 	}, nil
 }

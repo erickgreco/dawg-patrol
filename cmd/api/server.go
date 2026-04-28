@@ -6,7 +6,8 @@ import (
 	"time"
 
 	"github.com/erickgreco/dawg-patrol/internal/auth"
-	"github.com/erickgreco/dawg-patrol/internal/handlers"
+	"github.com/erickgreco/dawg-patrol/internal/home"
+	"github.com/erickgreco/dawg-patrol/internal/robots"
 	"github.com/erickgreco/dawg-patrol/internal/users"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
@@ -16,8 +17,9 @@ import (
 type application struct {
 	config     config
 	users      *users.Handler
+	robots     *robots.RobotHandler
 	middleware *auth.TokenService
-	handlers   *handlers.HomeHandler
+	home       *home.HomeHandler
 }
 
 type config struct {
@@ -53,7 +55,7 @@ func (app *application) mount() http.Handler {
 			r.Use(app.middleware.AuthMiddleware)
 			r.Use(httprate.Limit(100, time.Minute, httprate.WithKeyFuncs(app.middleware.KeyByUserID, httprate.KeyByEndpoint)))
 
-			r.Get("/home", app.handlers.HomePage)
+			r.Get("/home", app.home.HomePage)
 		})
 
 	})

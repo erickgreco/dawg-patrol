@@ -49,21 +49,20 @@ func (mw *TokenService) AuthMiddleware(next http.Handler) http.Handler {
 }
 
 /*
-//? Posible actualizacion para evitar bugs invisibles
-func getClaimsFromCtx(r *http.Request) (*Claims, bool) {
-claims, ok := r.Context().Value(claimsCtx).(*Claims)
-return claims, ok
-}
+Func created to retrieve claims from context and
+use them without consulting DB
 */
-func GetClaimsFromCtx(r *http.Request) *Claims {
-	claims, _ := r.Context().Value(claimsCtx).(*Claims)
-	return claims
+func GetClaimsFromCtx(r *http.Request) (*Claims, error) {
+	claims, ok := r.Context().Value(claimsCtx).(*Claims)
+	if !ok || claims == nil {
+		return nil, myerrors.ErrInvalidToken
+	}
+	return claims, nil
 }
 
 func (mw *TokenService) KeyByUserID(r *http.Request) (string, error) {
-	claims := GetClaimsFromCtx(r)
-
-	if claims == nil {
+	claims, err := GetClaimsFromCtx(r)
+	if err != nil || claims == nil {
 		return "unknown", nil
 	}
 

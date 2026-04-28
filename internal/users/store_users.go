@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/erickgreco/dawg-patrol/pkg/myerrors"
+	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
@@ -19,13 +20,11 @@ type UsersStore struct {
 	db *pgxpool.Pool
 }
 
-func NewStore(db *pgxpool.Pool) *UsersStore {
+func NewUserStore(db *pgxpool.Pool) *UsersStore {
 	return &UsersStore{
 		db: db,
 	}
 }
-
-//! In DB column user_role DOES NOT exists, column name is role, name needs to be updated everywhere it is used
 
 /*
 Method to create user, this method only works with DB,
@@ -110,6 +109,39 @@ func (s *UsersStore) GetByEmail(ctx context.Context, email string) (*User, error
 		&user.PasswordHash,
 		&user.UserRole,
 		&user.Active,
+	)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, myerrors.ErrDataNotFound
+		}
+		return nil, err
+	}
+	return user, nil
+}
+
+/*
+Method intended to retrieve minimal data from user
+*/
+func (s *UsersStore) GetSummaryByID(ctx context.Context, id uuid.UUID) (*UserSummary, error) {
+	query := `
+		SELECT id, username, role
+		FROM users
+		WHERE id = $1
+	`
+
+	ctx, cancel := context.WithTimeout(ctx, queryTimeDuration)
+	defer cancel()
+
+	user := &UserSummary{}
+
+	err := s.db.QueryRow(
+		ctx,
+		query,
+		id,
+	).Scan(
+		&user.ID,
+		&user.Username,
+		&user.UserRole,
 	)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {

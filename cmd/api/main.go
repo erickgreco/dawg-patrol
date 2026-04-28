@@ -5,7 +5,8 @@ import (
 	"time"
 
 	"github.com/erickgreco/dawg-patrol/internal/auth"
-	"github.com/erickgreco/dawg-patrol/internal/handlers"
+	"github.com/erickgreco/dawg-patrol/internal/home"
+	"github.com/erickgreco/dawg-patrol/internal/robots"
 	"github.com/erickgreco/dawg-patrol/internal/users"
 	"github.com/erickgreco/dawg-patrol/pkg/db"
 	"github.com/erickgreco/dawg-patrol/pkg/env"
@@ -43,18 +44,27 @@ func main() {
 	defer dbpool.Close()
 	log.Println("database connection established")
 
-	// Wiring dependencies
-	userstore := users.NewStore(dbpool)
+	// Wiring user dependencies
+	userStore := users.NewUserStore(dbpool)
 	tokenService := auth.NewTokenService(cfg.jwtSecret, cfg.jwtExpiry)
-	userservice := users.NewService(userstore, tokenService)
-	userhandler := users.NewHandler(userservice)
-	homeHandler := handlers.NewHomeHandler(userservice)
+	userService := users.NewUserService(userStore, tokenService)
+	userHandler := users.NewUserHandler(userService)
+
+	// Wiring robot dependencies
+	robotStore := robots.NewRobotsStore(dbpool)
+	robotService := robots.NewRobotService(robotStore)
+	robotHandler := robots.NewRobotHandler(robotService)
+
+	// Wiring home dependencies
+	homeService := home.NewHomeService(userStore, robotStore)
+	homeHandler := home.NewHomeHandler(homeService)
 
 	app := &application{
 		config:     cfg,
-		users:      userhandler,
+		users:      userHandler,
+		robots:     robotHandler,
 		middleware: tokenService,
-		handlers:   homeHandler,
+		home:       homeHandler,
 	}
 
 	mux := app.mount()

@@ -5,8 +5,13 @@ info:
 
 http:
   method: GET
-  url: http://localhost:8080/v1/home
-  auth: inherit
+  url: http://localhost:8080/v1/api/home
+  headers:
+    - name: Authorization
+      value: ""
+  auth:
+    type: bearer
+    token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI1NDRiMGE0MS1hZTk4LTRlMTktYmE2My05MzA2MGM0YTI2NmIiLCJyb2xlIjoiVklFV0VSIiwiaXNzIjoiZGF3Zy1wYXRyb2wtYXBpIiwiZXhwIjoxNzc3MzQ3MDQ2LCJpYXQiOjE3NzczNDUyNDZ9.uePoVCmd9ysMETTk1DALunYxmgxtrcyyNzdERSDKM6E
 
 settings:
   encodeUrl: true

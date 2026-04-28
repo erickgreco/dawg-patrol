@@ -37,6 +37,7 @@ type User struct {
 type RegisteredUser struct {
 	ID        uuid.UUID `json:"id"`
 	Username  string    `json:"username"`
+	UserRole  Role      `json:"role"`
 	CreatedAt time.Time `json:"created_at"`
 }
 
@@ -51,4 +52,11 @@ type AuthResponse struct {
 	Token string    `json:"token"`
 	ID    uuid.UUID `json:"id"`
 	Role  Role      `json:"role"`
+}
+
+// Payload to be used once user is auth
+type UserSummary struct {
+	ID       uuid.UUID `json:"id"`
+	Username string    `json:"username"`
+	UserRole Role      `json:"role"`
 }
