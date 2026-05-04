@@ -17,6 +17,7 @@ var (
 	ErrInvalidToken         = errors.New("error, token is invalid")
 	ErrInvalidSigningMethod = errors.New("error, invalid signing method")
 	ErrParsingClaims        = errors.New("error, unable to parse claims")
+	ErrUserNotFound         = errors.New("error, user not found")
 )
 
 func InternalServerError(w http.ResponseWriter, r *http.Request, err error) {

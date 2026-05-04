@@ -56,6 +56,7 @@ func (app *application) mount() http.Handler {
 			r.Use(httprate.Limit(100, time.Minute, httprate.WithKeyFuncs(app.middleware.KeyByUserID, httprate.KeyByEndpoint)))
 
 			r.Get("/home", app.home.HomePage)
+			r.Get("/profile", app.users.UserProfileHandler)
 		})
 
 	})

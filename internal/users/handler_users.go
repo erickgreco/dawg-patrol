@@ -4,6 +4,7 @@ import (
 	"errors"
 	"net/http"
 
+	"github.com/erickgreco/dawg-patrol/internal/auth"
 	"github.com/erickgreco/dawg-patrol/pkg/json"
 	"github.com/erickgreco/dawg-patrol/pkg/myerrors"
 )
@@ -84,6 +85,35 @@ func (h *Handler) LogInHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := json.JSONResponse(w, http.StatusOK, resp); err != nil {
+		myerrors.InternalServerError(w, r, err)
+		return
+	}
+}
+
+/*
+User profile retrieves all user data excluding password hash,
+adicionally posible actions user can implement
+*/
+func (h *Handler) UserProfileHandler(w http.ResponseWriter, r *http.Request) {
+	userID, err := auth.GetUserIDFromClaimsCtx(r)
+	if err != nil {
+		myerrors.BadRequestResponse(w, r, err)
+		return
+	}
+
+	ctx := r.Context()
+
+	profileResp, err := h.service.UserProfile(ctx, userID)
+	if err != nil {
+		if errors.Is(err, myerrors.ErrUserNotFound) {
+			myerrors.UnauthorizedResponse(w, r, myerrors.ErrUserNotFound)
+			return
+		}
+		myerrors.InternalServerError(w, r, err)
+		return
+	}
+
+	if err := json.JSONResponse(w, http.StatusOK, profileResp); err != nil {
 		myerrors.InternalServerError(w, r, err)
 		return
 	}

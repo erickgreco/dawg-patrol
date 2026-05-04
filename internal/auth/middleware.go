@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/erickgreco/dawg-patrol/pkg/myerrors"
+	"github.com/google/uuid"
 )
 
 type claimsKey string
@@ -60,6 +61,20 @@ func GetClaimsFromCtx(r *http.Request) (*Claims, error) {
 	return claims, nil
 }
 
+// Helper created to parse uuid from claimsCtx easily
+func (c *Claims) UserID() (uuid.UUID, error) {
+	return uuid.Parse(c.Sub)
+}
+
+func GetUserIDFromClaimsCtx(r *http.Request) (uuid.UUID, error) {
+	claims, err := GetClaimsFromCtx(r)
+	if err != nil {
+		return uuid.Nil, err
+	}
+	return claims.UserID()
+}
+
+// Key func created for rate limit keys
 func (mw *TokenService) KeyByUserID(r *http.Request) (string, error) {
 	claims, err := GetClaimsFromCtx(r)
 	if err != nil || claims == nil {

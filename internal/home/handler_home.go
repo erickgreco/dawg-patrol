@@ -6,7 +6,6 @@ import (
 	"github.com/erickgreco/dawg-patrol/internal/auth"
 	"github.com/erickgreco/dawg-patrol/pkg/json"
 	"github.com/erickgreco/dawg-patrol/pkg/myerrors"
-	"github.com/google/uuid"
 )
 
 type HomeHandler struct {
@@ -19,15 +18,12 @@ func NewHomeHandler(service *HomeService) *HomeHandler {
 	}
 }
 
-// ! This is only a test method
+/*
+Home handler displays minimal user data and current
+idle robots
+*/
 func (h *HomeHandler) HomePage(w http.ResponseWriter, r *http.Request) {
-	claims, err := auth.GetClaimsFromCtx(r)
-	if err != nil {
-		myerrors.UnauthorizedResponse(w, r, err)
-		return
-	}
-
-	userID, err := uuid.Parse(claims.Sub)
+	userID, err := auth.GetUserIDFromClaimsCtx(r)
 	if err != nil {
 		myerrors.BadRequestResponse(w, r, err)
 		return

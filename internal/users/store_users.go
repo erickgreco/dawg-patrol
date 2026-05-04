@@ -151,3 +151,41 @@ func (s *UsersStore) GetSummaryByID(ctx context.Context, id uuid.UUID) (*UserSum
 	}
 	return user, nil
 }
+
+/*
+This method is intented to retrieve all user data,
+excluding password hash
+*/
+func (s *UsersStore) GetByID(ctx context.Context, id uuid.UUID) (*User, error) {
+	query := `
+		SELECT id, username, email, role, is_active, created_at, updated_at
+		FROM users
+		WHERE id = $1
+	`
+
+	ctx, cancel := context.WithTimeout(ctx, queryTimeDuration)
+	defer cancel()
+
+	user := &User{}
+
+	err := s.db.QueryRow(
+		ctx,
+		query,
+		id,
+	).Scan(
+		&user.ID,
+		&user.Username,
+		&user.Email,
+		&user.UserRole,
+		&user.Active,
+		&user.CreatedAt,
+		&user.UpdatedAt,
+	)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, myerrors.ErrDataNotFound
+		}
+		return nil, err
+	}
+	return user, nil
+}

@@ -18,6 +18,14 @@ http:
       }
   auth: inherit
 
+runtime:
+  scripts:
+    - type: after-response
+      code: |-
+        const data = res.getBody();
+
+        bru.setEnvVar("token", data.data.token);
+
 settings:
   encodeUrl: true
   timeout: 0

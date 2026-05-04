@@ -14,7 +14,8 @@ type UsersRepo interface {
 	CreateUser(context.Context, *User) error
 	EmailExists(ctx context.Context, email string) (bool, error)
 	GetByEmail(ctx context.Context, email string) (*User, error)
-	GetSummaryByID(ctx context.Context, ID uuid.UUID) (*UserSummary, error)
+	GetSummaryByID(ctx context.Context, id uuid.UUID) (*UserSummary, error)
+	GetByID(ctx context.Context, id uuid.UUID) (*User, error)
 }
 
 type Service struct {
@@ -104,5 +105,38 @@ func (serv *Service) UserLogIn(ctx context.Context, data *LoginRequest) (*AuthRe
 		Token: token,
 		ID:    user.ID,
 		Role:  user.UserRole,
+	}, nil
+}
+
+/*
+This method is intented to validate status on user actions and allows (if applies)
+to perform the action
+*/
+func (serv *Service) UserProfile(ctx context.Context, id uuid.UUID) (*ProfileResponse, error) {
+	user, err := serv.store.GetByID(ctx, id)
+	if err != nil {
+		if errors.Is(err, myerrors.ErrDataNotFound) {
+			return nil, myerrors.ErrUserNotFound
+		}
+		return nil, err
+	}
+
+	profile := &Profile{
+		ID:        user.ID,
+		Username:  user.Username,
+		Email:     user.Email,
+		UserRole:  user.UserRole,
+		Active:    user.Active,
+		CreatedAt: user.CreatedAt,
+		UpdatedAt: user.UpdatedAt,
+	}
+
+	return &ProfileResponse{
+		Profile: profile,
+		Actions: UserActions{
+			UpdatePassword:    true,
+			UpdateUsername:    true,
+			RequestRoleUpdate: user.UserRole == RoleViewer,
+		},
 	}, nil
 }

@@ -60,3 +60,27 @@ type UserSummary struct {
 	Username string    `json:"username"`
 	UserRole Role      `json:"role"`
 }
+
+// Actions to be shown in profile handler
+type UserActions struct {
+	UpdatePassword    bool `json:"action_update_password"`
+	UpdateUsername    bool `json:"action_update_username"`
+	RequestRoleUpdate bool `json:"action_request_role_update"`
+}
+
+// Payload to be shown in profile handler
+type Profile struct {
+	ID        uuid.UUID `json:"id"`
+	Username  string    `json:"username"`
+	Email     string    `json:"email"`
+	UserRole  Role      `json:"role"`
+	Active    bool      `json:"is_active"`
+	CreatedAt time.Time `json:"created_at"`
+	UpdatedAt time.Time `json:"updated_at"`
+}
+
+// Envelope for all profile data
+type ProfileResponse struct {
+	Profile *Profile    `json:"profile"`
+	Actions UserActions `json:"user_actions"`
+}
