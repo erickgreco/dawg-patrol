@@ -1,0 +1,3 @@
+ALTER TABLE robots
+DROP COLUMN IF EXISTS serial_number,
+DROP COLUMN IF EXISTS last_seen_at;

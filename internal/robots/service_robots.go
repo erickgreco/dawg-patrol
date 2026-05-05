@@ -1,6 +1,8 @@
 package robots
 
-import "context"
+import (
+	"context"
+)
 
 type RobotsRepo interface {
 	RegisterRobot(context.Context, *Robot) error

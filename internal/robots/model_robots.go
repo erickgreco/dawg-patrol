@@ -33,3 +33,19 @@ type RobotSummary struct {
 	Status  string    `json:"status"`
 	Battery int64     `json:"battery"`
 }
+
+// Payload to work with commands
+type CommandType string
+
+const (
+	CommandForward   CommandType = "move_forward"
+	CommandBackward  CommandType = "move_backward"
+	CommandTurnRight CommandType = "turn_right"
+	CommandTurnLeft  CommandType = "turn_left"
+	CommandStop      CommandType = "stop"
+)
+
+type Command struct {
+	Type    CommandType    `json:"type"`
+	Payload map[string]any `json:"payload"`
+}

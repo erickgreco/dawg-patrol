@@ -1,0 +1,3 @@
+ALTER TABLE robots
+ADD COLUMN serial_number TEXT UNIQUE NOT NULL,
+ADD COLUMN last_seen_at TIMESTAMPTZ;
