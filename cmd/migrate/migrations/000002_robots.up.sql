@@ -1,10 +1,10 @@
-CREATE TYPE robot_role AS ENUM ('ASSISTANT', 'SUMO', 'RACER');
+CREATE TYPE robot_type AS ENUM ('ASSISTANT', 'SUMO', 'RACER');
 CREATE TYPE robot_status AS ENUM ('IDLE', 'IN_USE', 'CHARGING', 'OFFLINE');
 
 CREATE TABLE robots (
     id UUID PRIMARY KEY,
     name TEXT NOT NULL,
-    role robot_role NOT NULL,
+    type robot_type NOT NULL,
     status robot_status NOT NULL DEFAULT 'OFFLINE',
     battery INTEGER NOT NULL DEFAULT 100 CHECK (battery BETWEEN 0 AND 100),
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),

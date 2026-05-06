@@ -25,7 +25,7 @@ func NewRobotsStore(db *pgxpool.Pool) *RobotsStore {
 // ! so status NEEDS to be updated when using a robot
 func (r *RobotsStore) RegisterRobot(ctx context.Context, robot *Robot) error {
 	query := `
-		INSERT INTO robots (id, serial_number, name, role, battery, status, last_seen_at)
+		INSERT INTO robots (id, serial_number, name, type, battery, status, last_seen_at)
 		VALUES($1, $2, $3, $4, $5, $6, $7)
 		ON CONFLICT (serial_number)
 		DO UPDATE SET
@@ -34,7 +34,7 @@ func (r *RobotsStore) RegisterRobot(ctx context.Context, robot *Robot) error {
 			last_seen_at = EXCLUDED.last_seen_at,
 			updated_at = NOW()
 
-		RETURNING id, serial_number, name, role, battery, status, last_seen_at, created_at, updated_at
+		RETURNING id, serial_number, name, type, battery, status, last_seen_at, created_at, updated_at
 	`
 
 	ctx, cancel := context.WithTimeout(ctx, queryTimeDuration)
@@ -46,7 +46,7 @@ func (r *RobotsStore) RegisterRobot(ctx context.Context, robot *Robot) error {
 		robot.ID,
 		robot.SerialNumber,
 		robot.Name,
-		robot.Role,
+		robot.Category,
 		robot.Battery,
 		robot.Status,
 		robot.LastSeenAt,
@@ -54,7 +54,7 @@ func (r *RobotsStore) RegisterRobot(ctx context.Context, robot *Robot) error {
 		&robot.ID,
 		&robot.SerialNumber,
 		&robot.Name,
-		&robot.Role,
+		&robot.Category,
 		&robot.Battery,
 		&robot.Status,
 		&robot.LastSeenAt,
@@ -73,7 +73,7 @@ robots from DB since robots are mocked
 */
 func (r *RobotsStore) GetIdleRobots(ctx context.Context) ([]*RobotSummary, error) {
 	query := `
-		SELECT id, name, role, status, battery, last_seen_at
+		SELECT id, name, type, status, battery, last_seen_at
 		FROM robots
 		WHERE status = 'IDLE'
 	`
@@ -95,7 +95,53 @@ func (r *RobotsStore) GetIdleRobots(ctx context.Context) ([]*RobotSummary, error
 		err := rows.Scan(
 			&robot.ID,
 			&robot.Name,
-			&robot.Role,
+			&robot.Category,
+			&robot.Status,
+			&robot.Battery,
+			&robot.LastSeenAt,
+		)
+		if err != nil {
+			return nil, err
+		}
+
+		robots = append(robots, robot)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return robots, nil
+}
+
+/*
+Retrieves all unavailable robots, maintenance will be added
+*/
+func (r *RobotsStore) GetUnavailableRobots(ctx context.Context) ([]*RobotSummary, error) {
+	query := `
+		SELECT id, name, type, status, battery, last_seen_at
+		FROM robots
+		WHERE status IN ('IN_USE', 'CHARGING', 'OFFLINE')
+	`
+
+	ctx, cancel := context.WithTimeout(ctx, queryTimeDuration)
+	defer cancel()
+
+	rows, err := r.db.Query(ctx, query)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var robots []*RobotSummary
+
+	for rows.Next() {
+		robot := &RobotSummary{}
+
+		err := rows.Scan(
+			&robot.ID,
+			&robot.Name,
+			&robot.Category,
 			&robot.Status,
 			&robot.Battery,
 			&robot.LastSeenAt,

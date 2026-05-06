@@ -58,6 +58,11 @@ func (app *application) mount() http.Handler {
 
 			r.Get("/", app.home.HomePage)
 			r.Get("/profile", app.users.UserProfileHandler)
+		})
+
+		r.Route("/robots", func(r chi.Router) {
+			r.Use(app.middleware.AuthMiddleware)
+			r.Use(httprate.Limit(100, time.Minute, httprate.WithKeyFuncs(app.middleware.KeyByUserID, httprate.KeyByEndpoint)))
 
 			r.With(
 				app.middleware.RequireRole(domain.RoleAdmin),

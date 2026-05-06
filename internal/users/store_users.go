@@ -158,7 +158,7 @@ excluding password hash
 */
 func (s *UsersStore) GetByID(ctx context.Context, id uuid.UUID) (*User, error) {
 	query := `
-		SELECT id, username, email, role, is_active, created_at, updated_at
+		SELECT id, username, email, role, is_active, operator_request_status, operator_requested_at, created_at, updated_at
 		FROM users
 		WHERE id = $1
 	`
@@ -178,6 +178,8 @@ func (s *UsersStore) GetByID(ctx context.Context, id uuid.UUID) (*User, error) {
 		&user.Email,
 		&user.UserRole,
 		&user.Active,
+		&user.RequestStatus,
+		&user.RequestedAt,
 		&user.CreatedAt,
 		&user.UpdatedAt,
 	)

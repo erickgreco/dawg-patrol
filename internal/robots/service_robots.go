@@ -15,13 +15,14 @@ import (
 var (
 	snRegex   = regexp.MustCompile(`^[0-9A-F]{2}(:[0-9A-F]{2}){5}$`)
 	nameRegex = regexp.MustCompile(`^[A-Z][a-z]+[A-Z][0-9]+$`)
-	roleRegex = regexp.MustCompile(`([A-Z])\d+$`)
+	typeRegex = regexp.MustCompile(`([A-Z])\d+$`)
 )
 
 type RobotsRepo interface {
 	RegisterRobot(context.Context, *Robot) error
 	RegisterEvent(context.Context, *RobotEvents) error
 	GetIdleRobots(context.Context) ([]*RobotSummary, error)
+	GetUnavailableRobots(context.Context) ([]*RobotSummary, error)
 }
 
 type Service struct {
@@ -49,7 +50,7 @@ func (serv *Service) RobotRegistration(ctx context.Context, robot *RobotRegistra
 		return nil, myerrors.ErrBatteryOutOfRange
 	}
 
-	role, err := AssignRoleFromName(robot.Name)
+	category, err := AssignTypeFromName(robot.Name)
 	if err != nil {
 		return nil, err
 	}
@@ -58,7 +59,7 @@ func (serv *Service) RobotRegistration(ctx context.Context, robot *RobotRegistra
 		ID:           uuid.New(),
 		SerialNumber: serialNumber,
 		Name:         robot.Name,
-		Role:         role,
+		Category:     category,
 		Battery:      robot.Battery,
 		Status:       string(domain.IdleStatus),
 		LastSeenAt:   time.Now(),
@@ -72,7 +73,7 @@ func (serv *Service) RobotRegistration(ctx context.Context, robot *RobotRegistra
 		ID:           validatedRobot.ID,
 		SerialNumber: validatedRobot.SerialNumber,
 		Name:         validatedRobot.Name,
-		Role:         validatedRobot.Role,
+		Category:     validatedRobot.Category,
 		Status:       validatedRobot.Status,
 		Battery:      validatedRobot.Battery,
 		LastSeenAt:   validatedRobot.LastSeenAt,
@@ -113,22 +114,56 @@ func ValidateBattery(battery int64) bool {
 }
 
 /*
-Helper to auto asign role according to value in name
+Helper to auto asign type according to value in name
+Robot name structure is:
+Name + Caps role initial + Number of robot
+Ex: NoisyA1 (in this case Noisy is assistant)
 */
-func AssignRoleFromName(name string) (domain.Role, error) {
+func AssignTypeFromName(name string) (domain.Category, error) {
 	name = strings.TrimSpace(name)
 
-	matches := roleRegex.FindStringSubmatch(name)
+	matches := typeRegex.FindStringSubmatch(name)
 	if len(matches) < 2 {
 		return "", myerrors.ErrInvalidRobotName
 	}
 
-	roleLetter := matches[1]
+	typeLetter := matches[1]
 
-	role, ok := domain.RoleMap[roleLetter]
+	category, ok := domain.TypeMap[typeLetter]
 	if !ok {
-		return "", myerrors.ErrInvalidRobotRole
+		return "", myerrors.ErrInvalidRobotType
 	}
 
-	return domain.Role(role), nil
+	return domain.Category(category), nil
+}
+
+/*
+This method will apply business logic as it grows, will work with roles
+! Currently it receives a role but is unused
+*/
+func (serv *Service) IdleRobots(ctx context.Context, role *domain.Role) (*IdleRobots, error) {
+	idleRobots, err := serv.store.GetIdleRobots(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	var assistants []*RobotSummary
+	var sumos []*RobotSummary
+	var racers []*RobotSummary
+
+	for _, robot := range idleRobots {
+		switch robot.Category {
+		case domain.TypeAssistant:
+			assistants = append(assistants, robot)
+		case domain.TypeSumo:
+			sumos = append(sumos, robot)
+		case domain.TypeRacer:
+			racers = append(racers, robot)
+		}
+	}
+	return &IdleRobots{
+		AssistantRobots: assistants,
+		SumoRobots:      sumos,
+		RacerRobots:     racers,
+	}, nil
 }

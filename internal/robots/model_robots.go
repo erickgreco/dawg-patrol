@@ -15,27 +15,34 @@ type RobotRegistration struct {
 }
 
 // Payload to be stored in DB
+// Inconsistency between Category and type is bc type is a Go restricted word
 type Robot struct {
-	ID           uuid.UUID   `json:"id"`
-	SerialNumber string      `json:"serial_number"`
-	Name         string      `json:"name"`
-	Role         domain.Role `json:"role"`
-	Status       string      `json:"status"`
-	Battery      int64       `json:"battery"`
-	LastSeenAt   time.Time   `json:"last_seen_at"`
-	CreatedAt    time.Time   `json:"created_at"`
-	UpdatedAt    time.Time   `json:"updated_at"`
+	ID           uuid.UUID       `json:"id"`
+	SerialNumber string          `json:"serial_number"`
+	Name         string          `json:"name"`
+	Category     domain.Category `json:"type"`
+	Status       string          `json:"status"`
+	Battery      int64           `json:"battery"`
+	LastSeenAt   time.Time       `json:"last_seen_at"`
+	CreatedAt    time.Time       `json:"created_at"`
+	UpdatedAt    time.Time       `json:"updated_at"`
 }
 
 // Payload to show on handlers
 type RobotSummary struct {
-	ID           uuid.UUID   `json:"id"`
-	SerialNumber string      `json:"serial_number"`
-	Name         string      `json:"name"`
-	Role         domain.Role `json:"role"`
-	Status       string      `json:"status"`
-	Battery      int64       `json:"battery"`
-	LastSeenAt   time.Time   `json:"last_seen_at"`
+	ID           uuid.UUID       `json:"id"`
+	SerialNumber string          `json:"serial_number"`
+	Name         string          `json:"name"`
+	Category     domain.Category `json:"role"`
+	Status       string          `json:"status"`
+	Battery      int64           `json:"battery"`
+	LastSeenAt   time.Time       `json:"last_seen_at"`
+}
+
+type IdleRobots struct {
+	AssistantRobots []*RobotSummary
+	SumoRobots      []*RobotSummary
+	RacerRobots     []*RobotSummary
 }
 
 // Payload to work with commands

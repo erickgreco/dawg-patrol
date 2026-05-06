@@ -21,7 +21,7 @@ var (
 	ErrInvalidSerialNumber  = errors.New("error, invalid serial number")
 	ErrInvalidRobotName     = errors.New("error, invalid robot name")
 	ErrBatteryOutOfRange    = errors.New("error, battery out of valid range")
-	ErrInvalidRobotRole     = errors.New("error, invalid role in name")
+	ErrInvalidRobotType     = errors.New("error, invalid role in name")
 	ErrInvalidUserRole      = errors.New("error, invalid user role")
 )
 

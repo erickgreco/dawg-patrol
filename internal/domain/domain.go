@@ -3,6 +3,8 @@ package domain
 
 type Role string
 
+type Category string
+
 // User domain info
 const (
 	RoleAdmin    Role = "ADMIN"
@@ -14,17 +16,17 @@ const (
 type Status string
 
 const (
-	RoleAssistant  Role   = "ASSISTANT"
-	RoleSumo       Role   = "SUMO"
-	RoleRacer      Role   = "RACER"
-	IdleStatus     Status = "IDLE"
-	InUseStatus    Status = "IN USE"
-	ChargingStatus Status = "CHARGING"
-	OfflineStatus  Status = "OFFLINE"
+	TypeAssistant  Category = "ASSISTANT"
+	TypeSumo       Category = "SUMO"
+	TypeRacer      Category = "RACER"
+	IdleStatus     Status   = "IDLE"
+	InUseStatus    Status   = "IN USE"
+	ChargingStatus Status   = "CHARGING"
+	OfflineStatus  Status   = "OFFLINE"
 )
 
-var RoleMap = map[string]string{
-	"A": string(RoleAssistant),
-	"S": string(RoleSumo),
-	"R": string(RoleRacer),
+var TypeMap = map[string]string{
+	"A": string(TypeAssistant),
+	"S": string(TypeSumo),
+	"R": string(TypeRacer),
 }

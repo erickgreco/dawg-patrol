@@ -16,14 +16,16 @@ type Registration struct {
 
 // Payload to be stored in database
 type User struct {
-	ID           uuid.UUID   `json:"id"`
-	Username     string      `json:"username"`
-	Email        string      `json:"email"`
-	PasswordHash string      `json:"password_hash"`
-	UserRole     domain.Role `json:"role"`
-	Active       bool        `json:"is_active"`
-	CreatedAt    time.Time   `json:"created_at"`
-	UpdatedAt    time.Time   `json:"updated_at"`
+	ID            uuid.UUID   `json:"id"`
+	Username      string      `json:"username"`
+	Email         string      `json:"email"`
+	PasswordHash  string      `json:"password_hash"`
+	UserRole      domain.Role `json:"role"`
+	Active        bool        `json:"is_active"`
+	RequestStatus string      `json:"request_status"`
+	RequestedAt   *time.Time  `json:"requested_at"`
+	CreatedAt     time.Time   `json:"created_at"`
+	UpdatedAt     time.Time   `json:"updated_at"`
 }
 
 // Payload to be returned to user
@@ -63,13 +65,15 @@ type UserActions struct {
 
 // Payload to be shown in profile handler
 type Profile struct {
-	ID        uuid.UUID   `json:"id"`
-	Username  string      `json:"username"`
-	Email     string      `json:"email"`
-	UserRole  domain.Role `json:"role"`
-	Active    bool        `json:"is_active"`
-	CreatedAt time.Time   `json:"created_at"`
-	UpdatedAt time.Time   `json:"updated_at"`
+	ID            uuid.UUID   `json:"id"`
+	Username      string      `json:"username"`
+	Email         string      `json:"email"`
+	UserRole      domain.Role `json:"role"`
+	Active        bool        `json:"is_active"`
+	RequestStatus string      `json:"request_status"`
+	RequestedAt   *time.Time  `json:"requested_at"`
+	CreatedAt     time.Time   `json:"created_at"`
+	UpdatedAt     time.Time   `json:"updated_at"`
 }
 
 // Envelope for all profile data

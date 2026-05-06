@@ -123,13 +123,15 @@ func (serv *Service) UserProfile(ctx context.Context, id uuid.UUID) (*ProfileRes
 	}
 
 	profile := &Profile{
-		ID:        user.ID,
-		Username:  user.Username,
-		Email:     user.Email,
-		UserRole:  user.UserRole,
-		Active:    user.Active,
-		CreatedAt: user.CreatedAt,
-		UpdatedAt: user.UpdatedAt,
+		ID:            user.ID,
+		Username:      user.Username,
+		Email:         user.Email,
+		UserRole:      user.UserRole,
+		Active:        user.Active,
+		RequestStatus: user.RequestStatus,
+		RequestedAt:   user.RequestedAt,
+		CreatedAt:     user.CreatedAt,
+		UpdatedAt:     user.UpdatedAt,
 	}
 
 	return &ProfileResponse{
