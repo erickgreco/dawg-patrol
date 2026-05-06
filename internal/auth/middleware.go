@@ -3,8 +3,10 @@ package auth
 import (
 	"context"
 	"net/http"
+	"slices"
 	"strings"
 
+	"github.com/erickgreco/dawg-patrol/internal/domain"
 	"github.com/erickgreco/dawg-patrol/pkg/myerrors"
 	"github.com/google/uuid"
 )
@@ -72,6 +74,44 @@ func GetUserIDFromClaimsCtx(r *http.Request) (uuid.UUID, error) {
 		return uuid.Nil, err
 	}
 	return claims.UserID()
+}
+
+// Helper to get role from claimsCtx
+func RoleFromClaimsCtx(r *http.Request) (domain.Role, error) {
+	claims, err := GetClaimsFromCtx(r)
+	if err != nil {
+		return "", err
+	}
+
+	role := domain.Role(claims.Role)
+
+	switch role {
+	case domain.RoleAdmin, domain.RoleOperator:
+		return role, nil
+	default:
+		return "", myerrors.ErrInvalidUserRole
+	}
+}
+
+/*
+This is a middleware setup to protect routes according to an
+specified role
+*/
+func (mw *TokenService) RequireRole(allowedRoles ...domain.Role) func(http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			role, err := RoleFromClaimsCtx(r)
+			if err != nil {
+				myerrors.UnauthorizedResponse(w, r, err)
+				return
+			}
+			if slices.Contains(allowedRoles, role) {
+				next.ServeHTTP(w, r)
+				return
+			}
+			myerrors.ForbiddenResponse(w, r, err)
+		})
+	}
 }
 
 // Key func created for rate limit keys

@@ -3,35 +3,39 @@ package robots
 import (
 	"time"
 
+	"github.com/erickgreco/dawg-patrol/internal/domain"
 	"github.com/google/uuid"
 )
 
-type Role string
-
-const (
-	RoleAssistant Role = "ASSISTANT"
-	RoleSumo      Role = "SUMO"
-	RoleRacer     Role = "RACER"
-)
+// Payload retrieved from robot to register
+type RobotRegistration struct {
+	SerialNumber string `json:"serial_number"`
+	Name         string `json:"name"`
+	Battery      int64  `json:"battery"`
+}
 
 // Payload to be stored in DB
 type Robot struct {
-	ID        uuid.UUID `json:"id"`
-	Name      string    `json:"name"`
-	Role      Role      `json:"role"`
-	Status    string    `json:"status"`
-	Battery   int64     `json:"battery"`
-	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"`
+	ID           uuid.UUID   `json:"id"`
+	SerialNumber string      `json:"serial_number"`
+	Name         string      `json:"name"`
+	Role         domain.Role `json:"role"`
+	Status       string      `json:"status"`
+	Battery      int64       `json:"battery"`
+	LastSeenAt   time.Time   `json:"last_seen_at"`
+	CreatedAt    time.Time   `json:"created_at"`
+	UpdatedAt    time.Time   `json:"updated_at"`
 }
 
 // Payload to show on handlers
 type RobotSummary struct {
-	ID      uuid.UUID `json:"id"`
-	Name    string    `json:"name"`
-	Role    Role      `json:"role"`
-	Status  string    `json:"status"`
-	Battery int64     `json:"battery"`
+	ID           uuid.UUID   `json:"id"`
+	SerialNumber string      `json:"serial_number"`
+	Name         string      `json:"name"`
+	Role         domain.Role `json:"role"`
+	Status       string      `json:"status"`
+	Battery      int64       `json:"battery"`
+	LastSeenAt   time.Time   `json:"last_seen_at"`
 }
 
 // Payload to work with commands

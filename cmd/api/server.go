@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/erickgreco/dawg-patrol/internal/auth"
+	"github.com/erickgreco/dawg-patrol/internal/domain"
 	"github.com/erickgreco/dawg-patrol/internal/home"
 	"github.com/erickgreco/dawg-patrol/internal/robots"
 	"github.com/erickgreco/dawg-patrol/internal/users"
@@ -17,7 +18,7 @@ import (
 type application struct {
 	config     config
 	users      *users.Handler
-	robots     *robots.RobotHandler
+	robots     *robots.Handler
 	middleware *auth.TokenService
 	home       *home.HomeHandler
 }
@@ -51,14 +52,17 @@ func (app *application) mount() http.Handler {
 			r.Post("/", app.users.LogInHandler)
 		})
 
-		r.Route("/api", func(r chi.Router) {
+		r.Route("/home", func(r chi.Router) {
 			r.Use(app.middleware.AuthMiddleware)
 			r.Use(httprate.Limit(100, time.Minute, httprate.WithKeyFuncs(app.middleware.KeyByUserID, httprate.KeyByEndpoint)))
 
-			r.Get("/home", app.home.HomePage)
+			r.Get("/", app.home.HomePage)
 			r.Get("/profile", app.users.UserProfileHandler)
-		})
 
+			r.With(
+				app.middleware.RequireRole(domain.RoleAdmin),
+			).Post("/register-robot", app.robots.RegisterRobotHandler)
+		})
 	})
 
 	return r

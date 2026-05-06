@@ -3,7 +3,7 @@ package robots
 import "fmt"
 
 // Method that executes robot movement
-func (r *RobotService) Execute(cmd Command) (string, error) {
+func (r *Service) Execute(cmd Command) (string, error) {
 	switch cmd.Type {
 	case CommandForward:
 		fmt.Println(CommandForward)

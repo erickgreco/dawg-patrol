@@ -25,9 +25,16 @@ func NewRobotsStore(db *pgxpool.Pool) *RobotsStore {
 // ! so status NEEDS to be updated when using a robot
 func (r *RobotsStore) RegisterRobot(ctx context.Context, robot *Robot) error {
 	query := `
-		INSERT INTO robots (id, name, role, status, battery)
-		VALUES($1, $2, $3, $4. $5)
-		RETURNING id, name, role, status, created_at, updated_at
+		INSERT INTO robots (id, serial_number, name, role, battery, status, last_seen_at)
+		VALUES($1, $2, $3, $4, $5, $6, $7)
+		ON CONFLICT (serial_number)
+		DO UPDATE SET
+			battery = EXCLUDED.battery,
+			status = EXCLUDED.status,
+			last_seen_at = EXCLUDED.last_seen_at,
+			updated_at = NOW()
+
+		RETURNING id, serial_number, name, role, battery, status, last_seen_at, created_at, updated_at
 	`
 
 	ctx, cancel := context.WithTimeout(ctx, queryTimeDuration)
@@ -37,16 +44,20 @@ func (r *RobotsStore) RegisterRobot(ctx context.Context, robot *Robot) error {
 		ctx,
 		query,
 		robot.ID,
+		robot.SerialNumber,
 		robot.Name,
 		robot.Role,
-		robot.Status,
 		robot.Battery,
+		robot.Status,
+		robot.LastSeenAt,
 	).Scan(
 		&robot.ID,
+		&robot.SerialNumber,
 		&robot.Name,
 		&robot.Role,
-		&robot.Status,
 		&robot.Battery,
+		&robot.Status,
+		&robot.LastSeenAt,
 		&robot.CreatedAt,
 		&robot.UpdatedAt,
 	)
@@ -62,7 +73,7 @@ robots from DB since robots are mocked
 */
 func (r *RobotsStore) GetIdleRobots(ctx context.Context) ([]*RobotSummary, error) {
 	query := `
-		SELECT id, name, role, status, battery
+		SELECT id, name, role, status, battery, last_seen_at
 		FROM robots
 		WHERE status = 'IDLE'
 	`
@@ -87,6 +98,7 @@ func (r *RobotsStore) GetIdleRobots(ctx context.Context) ([]*RobotSummary, error
 			&robot.Role,
 			&robot.Status,
 			&robot.Battery,
+			&robot.LastSeenAt,
 		)
 		if err != nil {
 			return nil, err

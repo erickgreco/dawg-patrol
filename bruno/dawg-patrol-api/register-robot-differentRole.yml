@@ -1,0 +1,25 @@
+info:
+  name: register-robot-differentRole
+  type: http
+  seq: 9
+
+http:
+  method: POST
+  url: "{{base_url}}/v1/home/register-robot"
+  body:
+    type: json
+    data: |-
+      {
+        "serial_number": "09:AA:BB:C1:D3:A3",
+        "name": "AstroR1",
+        "battery": 70
+      }
+  auth:
+    type: bearer
+    token: "{{token}}"
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

@@ -1,0 +1,25 @@
+info:
+  name: register-robot
+  type: http
+  seq: 8
+
+http:
+  method: POST
+  url: "{{base_url}}/v1/home/register-robot"
+  body:
+    type: json
+    data: |-
+      {
+        "serial_number": "A1:B2:C3:D4:E5:F6",
+        "name": "NoisyA1",
+        "battery": 98
+      }
+  auth:
+    type: bearer
+    token: "{{token}}"
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

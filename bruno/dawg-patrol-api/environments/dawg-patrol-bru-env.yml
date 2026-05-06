@@ -2,3 +2,7 @@ name: dawg-patrol-bru-env
 variables:
   - name: Token
     value: '""'
+  - secret: true
+    name: token
+  - name: base_url
+    value: http://localhost:8080

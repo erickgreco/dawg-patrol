@@ -5,6 +5,7 @@ import (
 	"errors"
 
 	"github.com/erickgreco/dawg-patrol/internal/auth"
+	"github.com/erickgreco/dawg-patrol/internal/domain"
 	"github.com/erickgreco/dawg-patrol/pkg/myerrors"
 	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
@@ -55,7 +56,7 @@ func (serv *Service) UserRegistration(ctx context.Context, data *Registration) (
 		Username:     data.Username,
 		Email:        data.Email,
 		PasswordHash: string(hashedpw),
-		UserRole:     RoleViewer,
+		UserRole:     domain.RoleViewer,
 		Active:       true,
 	}
 
@@ -136,7 +137,7 @@ func (serv *Service) UserProfile(ctx context.Context, id uuid.UUID) (*ProfileRes
 		Actions: UserActions{
 			UpdatePassword:    true,
 			UpdateUsername:    true,
-			RequestRoleUpdate: user.UserRole == RoleViewer,
+			RequestRoleUpdate: user.UserRole == domain.RoleViewer,
 		},
 	}, nil
 }
