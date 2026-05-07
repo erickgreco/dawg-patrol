@@ -3,6 +3,7 @@ package users
 import (
 	"context"
 	"errors"
+	"math/rand"
 
 	"github.com/erickgreco/dawg-patrol/internal/auth"
 	"github.com/erickgreco/dawg-patrol/internal/domain"
@@ -11,12 +12,22 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
+const (
+	none               = "NONE"
+	pending            = "PENDING"
+	approved           = "APPROVED"
+	rejected           = "REJECTED"
+	pendingResponse    = "REQUEST ALREADY PENDING"
+	succesfullResponse = "REQUEST CREATED SUCCESSFULLY"
+)
+
 type UsersRepo interface {
 	CreateUser(context.Context, *User) error
 	EmailExists(ctx context.Context, email string) (bool, error)
 	GetByEmail(ctx context.Context, email string) (*User, error)
 	GetSummaryByID(ctx context.Context, id uuid.UUID) (*UserSummary, error)
 	GetByID(ctx context.Context, id uuid.UUID) (*User, error)
+	CreateUserRequest(ctx context.Context, id uuid.UUID) (*RoleRequest, error)
 }
 
 type Service struct {
@@ -56,7 +67,7 @@ func (serv *Service) UserRegistration(ctx context.Context, data *Registration) (
 		Username:     data.Username,
 		Email:        data.Email,
 		PasswordHash: string(hashedpw),
-		UserRole:     domain.RoleViewer,
+		UserRole:     RandomRole(),
 		Active:       true,
 	}
 
@@ -134,12 +145,63 @@ func (serv *Service) UserProfile(ctx context.Context, id uuid.UUID) (*ProfileRes
 		UpdatedAt:     user.UpdatedAt,
 	}
 
+	requestRole := RoleRequest{
+		Action: user.UserRole == domain.RoleViewer && user.RequestStatus == none,
+		Status: none,
+	}
+
+	if user.RequestStatus == pending {
+		requestRole.Response = pendingResponse
+	}
+
 	return &ProfileResponse{
 		Profile: profile,
 		Actions: UserActions{
 			UpdatePassword:    true,
 			UpdateUsername:    true,
-			RequestRoleUpdate: user.UserRole == domain.RoleViewer,
+			RequestRoleUpdate: requestRole,
 		},
 	}, nil
+}
+
+func (serv *Service) UserRoleRequest(ctx context.Context, id uuid.UUID) (*RoleRequest, error) {
+	user, err := serv.store.GetByID(ctx, id)
+	if err != nil {
+		if errors.Is(err, myerrors.ErrDataNotFound) {
+			return nil, myerrors.ErrUserNotFound
+		}
+		return nil, err
+	}
+
+	if user.UserRole != domain.RoleViewer {
+		return nil, myerrors.ErrInvalidUserRole
+	}
+
+	if user.RequestStatus == pending {
+		return nil, myerrors.ErrPendingRequest
+	}
+
+	request, err := serv.store.CreateUserRequest(ctx, user.ID)
+	if err != nil {
+		if errors.Is(err, myerrors.ErrDataNotFound) {
+			return nil, myerrors.ErrUserNotFound
+		}
+		return nil, err
+	}
+
+	return &RoleRequest{
+		Action:      false,
+		Status:      request.Status,
+		RequestDate: request.RequestDate,
+		Response:    succesfullResponse,
+	}, nil
+}
+
+// This helper was created to be able to random add role while creating user (used for seed)
+func RandomRole() domain.Role {
+	roles := []domain.Role{domain.RoleAdmin, domain.RoleOperator, domain.RoleViewer}
+
+	userRole := roles[rand.Intn(len(roles))]
+
+	return userRole
 }

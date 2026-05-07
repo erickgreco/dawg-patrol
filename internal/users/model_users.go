@@ -58,9 +58,9 @@ type UserSummary struct {
 
 // Actions to be shown in profile handler
 type UserActions struct {
-	UpdatePassword    bool `json:"action_update_password"`
-	UpdateUsername    bool `json:"action_update_username"`
-	RequestRoleUpdate bool `json:"action_request_role_update"`
+	UpdatePassword    bool        `json:"action_update_password"`
+	UpdateUsername    bool        `json:"action_update_username"`
+	RequestRoleUpdate RoleRequest `json:"action_request_role_update"`
 }
 
 // Payload to be shown in profile handler
@@ -80,4 +80,11 @@ type Profile struct {
 type ProfileResponse struct {
 	Profile *Profile    `json:"profile"`
 	Actions UserActions `json:"user_actions"`
+}
+
+type RoleRequest struct {
+	Action      bool      `json:"action"`
+	Status      string    `json:"request_status"`
+	RequestDate time.Time `json:"requested_at"`
+	Response    string    `json:"request_response"`
 }

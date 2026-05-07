@@ -23,6 +23,7 @@ var (
 	ErrBatteryOutOfRange    = errors.New("error, battery out of valid range")
 	ErrInvalidRobotType     = errors.New("error, invalid role in name")
 	ErrInvalidUserRole      = errors.New("error, invalid user role")
+	ErrPendingRequest       = errors.New("error, request already pending")
 )
 
 func InternalServerError(w http.ResponseWriter, r *http.Request, err error) {

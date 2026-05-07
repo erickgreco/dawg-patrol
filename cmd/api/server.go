@@ -55,9 +55,14 @@ func (app *application) mount() http.Handler {
 		r.Route("/home", func(r chi.Router) {
 			r.Use(app.middleware.AuthMiddleware)
 			r.Use(httprate.Limit(100, time.Minute, httprate.WithKeyFuncs(app.middleware.KeyByUserID, httprate.KeyByEndpoint)))
-
 			r.Get("/", app.home.HomePage)
-			r.Get("/profile", app.users.UserProfileHandler)
+		})
+
+		r.Route("/profile", func(r chi.Router) {
+			r.Use(app.middleware.AuthMiddleware)
+			r.Use(httprate.Limit(100, time.Minute, httprate.WithKeyFuncs(app.middleware.KeyByUserID, httprate.KeyByEndpoint)))
+			r.Get("/", app.users.UserProfileHandler)
+			r.Post("/request-role-update", app.users.RequestRoleHandler)
 		})
 
 		r.Route("/robots", func(r chi.Router) {

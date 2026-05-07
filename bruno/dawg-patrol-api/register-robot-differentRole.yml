@@ -5,7 +5,7 @@ info:
 
 http:
   method: POST
-  url: "{{base_url}}/v1/home/register-robot"
+  url: "{{base_url}}/v1/robots/register-robot"
   body:
     type: json
     data: |-

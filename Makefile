@@ -1,5 +1,5 @@
 include .envrc
-export DB_ADDR
+export
 MIGRATIONS_PATH = ./cmd/migrate/migrations
 
 .PHONY: migrate-create
@@ -17,6 +17,10 @@ migrate-down:
 .PHONY: migrate-force
 migrate-force:
 	@migrate -path=$(MIGRATIONS_PATH) -database=$(DB_ADDR) force $(filter-out $@,$(MAKECMDGOALS))
+
+.PHONY: seed
+seed:
+	@bash -c 'source .envrc && go run ./cmd/seed'
 
 %:
 	@:

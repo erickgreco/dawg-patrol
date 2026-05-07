@@ -118,3 +118,28 @@ func (h *Handler) UserProfileHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 }
+
+func (h *Handler) RequestRoleHandler(w http.ResponseWriter, r *http.Request) {
+	userID, err := auth.GetUserIDFromClaimsCtx(r)
+	if err != nil {
+		myerrors.BadRequestResponse(w, r, err)
+		return
+	}
+
+	ctx := r.Context()
+
+	reqResp, err := h.service.UserRoleRequest(ctx, userID)
+	if err != nil {
+		if errors.Is(err, myerrors.ErrUserNotFound) {
+			myerrors.NotFoundResponse(w, r, myerrors.ErrUserNotFound)
+			return
+		}
+		myerrors.InternalServerError(w, r, err)
+		return
+	}
+
+	if err := json.JSONResponse(w, http.StatusCreated, reqResp); err != nil {
+		myerrors.InternalServerError(w, r, err)
+		return
+	}
+}

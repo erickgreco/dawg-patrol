@@ -2,6 +2,7 @@ package robots
 
 import (
 	"context"
+	"math/rand"
 	"regexp"
 	"strings"
 	"time"
@@ -61,7 +62,7 @@ func (serv *Service) RobotRegistration(ctx context.Context, robot *RobotRegistra
 		Name:         robot.Name,
 		Category:     category,
 		Battery:      robot.Battery,
-		Status:       string(domain.IdleStatus),
+		Status:       string(RandomStatus()),
 		LastSeenAt:   time.Now(),
 	}
 
@@ -166,4 +167,13 @@ func (serv *Service) IdleRobots(ctx context.Context, role *domain.Role) (*IdleRo
 		SumoRobots:      sumos,
 		RacerRobots:     racers,
 	}, nil
+}
+
+// This helper was created to be able to random add type while creating robot (used for seed)
+func RandomStatus() domain.Status {
+	categories := []domain.Status{domain.IdleStatus, domain.InUseStatus, domain.ChargingStatus, domain.OfflineStatus}
+
+	robotType := categories[rand.Intn(len(categories))]
+
+	return robotType
 }

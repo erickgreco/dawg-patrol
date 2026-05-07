@@ -191,3 +191,39 @@ func (s *UsersStore) GetByID(ctx context.Context, id uuid.UUID) (*User, error) {
 	}
 	return user, nil
 }
+
+/*
+Creates a request if no previous request was created
+*/
+func (s *UsersStore) CreateUserRequest(ctx context.Context, id uuid.UUID) (*RoleRequest, error) {
+	query := `
+		UPDATE users
+		SET
+			operator_request_status = 'PENDING',
+			operator_requested_at = NOW()
+		WHERE id = $1
+		AND operator_request_status = 'NONE'
+		RETURNING operator_request_status, operator_requested_at
+	`
+
+	ctx, cancel := context.WithTimeout(ctx, queryTimeDuration)
+	defer cancel()
+
+	request := &RoleRequest{}
+
+	err := s.db.QueryRow(
+		ctx,
+		query,
+		id,
+	).Scan(
+		&request.Status,
+		&request.RequestDate,
+	)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, myerrors.ErrDataNotFound
+		}
+		return nil, err
+	}
+	return request, nil
+}

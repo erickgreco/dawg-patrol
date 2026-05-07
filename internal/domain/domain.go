@@ -3,8 +3,6 @@ package domain
 
 type Role string
 
-type Category string
-
 // User domain info
 const (
 	RoleAdmin    Role = "ADMIN"
@@ -13,6 +11,7 @@ const (
 )
 
 // Robot domain info
+type Category string
 type Status string
 
 const (
@@ -20,7 +19,7 @@ const (
 	TypeSumo       Category = "SUMO"
 	TypeRacer      Category = "RACER"
 	IdleStatus     Status   = "IDLE"
-	InUseStatus    Status   = "IN USE"
+	InUseStatus    Status   = "IN_USE"
 	ChargingStatus Status   = "CHARGING"
 	OfflineStatus  Status   = "OFFLINE"
 )

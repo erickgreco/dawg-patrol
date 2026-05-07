@@ -1,0 +1,7 @@
+export ADDR=":8080"
+
+export DB_ADDR="postgres://user:password@localhost:5433/dbname?sslmode=disable"
+
+export JWT_SECRET="your-base64-encoded-secret-here"
+
+export JWT_EXPIRY="30m"
