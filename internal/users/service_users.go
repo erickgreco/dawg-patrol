@@ -13,12 +13,17 @@ import (
 )
 
 const (
-	none               = "NONE"
-	pending            = "PENDING"
-	approved           = "APPROVED"
-	rejected           = "REJECTED"
-	pendingResponse    = "REQUEST ALREADY PENDING"
-	succesfullResponse = "REQUEST CREATED SUCCESSFULLY"
+	none                  = "NONE"
+	pending               = "PENDING"
+	approved              = "APPROVED"
+	rejected              = "REJECTED"
+	pendingResponse       = "REQUEST ALREADY PENDING"
+	succesfullResponse    = "REQUEST CREATED SUCCESSFULLY"
+	requestRecommendation = "TO OPERATE ROBOTS PLEASE REQUEST A ROLE UPGRADE"
+	requestRejected       = "REQUEST REJECTED, FOR MORE INFO PLEASE CONTACT AN ADMIN"
+	requestApproved       = "REQUEST APPROVED, PLEASE CHECK COMMANDS INFO BEFORE USING A ROBOT"
+	operator              = "USER READY TO OPERATE A ROBOT"
+	pendingRequests       = "APPROVAL PENDING REQUESTS WILL BE DISPLAYED HERE"
 )
 
 type UsersRepo interface {
@@ -67,7 +72,7 @@ func (serv *Service) UserRegistration(ctx context.Context, data *Registration) (
 		Username:     data.Username,
 		Email:        data.Email,
 		PasswordHash: string(hashedpw),
-		UserRole:     RandomRole(),
+		UserRole:     randomRole(),
 		Active:       true,
 	}
 
@@ -198,10 +203,54 @@ func (serv *Service) UserRoleRequest(ctx context.Context, id uuid.UUID) (*RoleRe
 }
 
 // This helper was created to be able to random add role while creating user (used for seed)
-func RandomRole() domain.Role {
+func randomRole() domain.Role {
 	roles := []domain.Role{domain.RoleAdmin, domain.RoleOperator, domain.RoleViewer}
 
 	userRole := roles[rand.Intn(len(roles))]
 
 	return userRole
+}
+
+func (serv *Service) UserSummaryByRole(ctx context.Context, id uuid.UUID) (*UserSummary, error) {
+	user, err := serv.store.GetSummaryByID(ctx, id)
+	if err != nil {
+		if errors.Is(err, myerrors.ErrDataNotFound) {
+			return nil, myerrors.ErrInvalidUserID
+		}
+		return nil, err
+	}
+
+	summary := &UserSummary{
+		ID:          user.ID,
+		Username:    user.Username,
+		UserRole:    user.UserRole,
+		RequestedAt: user.RequestedAt,
+	}
+
+	switch user.UserRole {
+	case domain.RoleViewer:
+		summary.RequestStatus = statusCheck(user.RequestStatus)
+	case domain.RoleOperator:
+		summary.RequestStatus = operator
+	case domain.RoleAdmin:
+		summary.RequestStatus = pendingRequests
+	}
+	return summary, nil
+}
+
+/*
+This helper function was created to asign a personalized
+message in requestStatus
+*/
+func statusCheck(status string) string {
+	switch {
+	case status == approved:
+		return requestApproved
+	case status == pending:
+		return pendingResponse
+	case status == rejected:
+		return requestRejected
+	default:
+		return requestRecommendation
+	}
 }

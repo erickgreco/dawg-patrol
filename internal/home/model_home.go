@@ -7,6 +7,7 @@ import (
 
 // Home payload
 type HomeResponse struct {
-	User   users.UserSummary      `json:"user"`
-	Robots []*robots.RobotSummary `json:"robots"`
+	User      *users.UserSummary     `json:"user"`
+	NumRobots int                    `json:"available_robots_count"`
+	Robots    []*robots.RobotSummary `json:"robots"`
 }

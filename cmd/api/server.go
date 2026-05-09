@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/erickgreco/dawg-patrol/internal/auth"
+	"github.com/erickgreco/dawg-patrol/internal/apimiddleware"
 	"github.com/erickgreco/dawg-patrol/internal/domain"
 	"github.com/erickgreco/dawg-patrol/internal/home"
 	"github.com/erickgreco/dawg-patrol/internal/robots"
@@ -19,7 +19,7 @@ type application struct {
 	config     config
 	users      *users.Handler
 	robots     *robots.Handler
-	middleware *auth.TokenService
+	middleware *apimiddleware.Middleware
 	home       *home.HomeHandler
 }
 
@@ -72,6 +72,18 @@ func (app *application) mount() http.Handler {
 			r.With(
 				app.middleware.RequireRole(domain.RoleAdmin),
 			).Post("/register-robot", app.robots.RegisterRobotHandler)
+
+			r.With(
+				app.middleware.RequireRole(domain.RoleAdmin, domain.RoleOperator),
+			).Get("/idle-robots", app.robots.IdleRobotsHandler)
+
+			r.With(
+				app.middleware.RequireRole(domain.RoleAdmin, domain.RoleOperator),
+			).Route("/{robotID}", func(r chi.Router) {
+				r.Use(app.middleware.RobotContextMiddleware)
+
+				r.Patch("/reserve-robot", app.home.ReserveRobot)
+			})
 		})
 	})
 

@@ -6,6 +6,7 @@ import (
 
 	"github.com/erickgreco/dawg-patrol/pkg/myerrors"
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/google/uuid"
 )
 
 // Variable created for tokens creation
@@ -28,6 +29,14 @@ type Claims struct {
 	Sub  string `json:"sub"`
 	Role string `json:"role"`
 	jwt.RegisteredClaims
+}
+
+/*
+Helper created to parse uuid from claimsCtx easily
+Helper used in package middleware
+*/
+func (c *Claims) UserID() (uuid.UUID, error) {
+	return uuid.Parse(c.Sub)
 }
 
 /*

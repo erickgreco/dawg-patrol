@@ -2,8 +2,12 @@ package robots
 
 import (
 	"context"
+	"errors"
 	"time"
 
+	"github.com/erickgreco/dawg-patrol/pkg/myerrors"
+	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -158,4 +162,84 @@ func (r *RobotsStore) GetUnavailableRobots(ctx context.Context) ([]*RobotSummary
 	}
 
 	return robots, nil
+}
+
+/*
+Method created to store robotID in middlewareCtx previous to start ws connection
+*/
+func (r *RobotsStore) GetByID(ctx context.Context, robotID uuid.UUID) (*RobotSummary, error) {
+	query := `
+		SELECT id, serial_number, name, type, status, battery, last_seen_at
+		FROM robots
+		WHERE id = $1
+	`
+
+	ctx, cancel := context.WithTimeout(ctx, queryTimeDuration)
+	defer cancel()
+
+	robot := &RobotSummary{}
+
+	err := r.db.QueryRow(
+		ctx,
+		query,
+		robotID,
+	).Scan(
+		&robot.ID,
+		&robot.SerialNumber,
+		&robot.Name,
+		&robot.Category,
+		&robot.Status,
+		&robot.Battery,
+		&robot.LastSeenAt,
+	)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, myerrors.ErrDataNotFound
+		}
+		return nil, err
+	}
+	return robot, nil
+}
+
+/*
+Method to reserve robot previous to start ws conn
+*/
+func (r *RobotsStore) ReserveRobot(ctx context.Context, robotID, userID uuid.UUID) (*RobotSummary, error) {
+	query := `
+		UPDATE robots
+		SET 
+			status = 'IN_USE', 
+			last_operator_id = $2, 
+			last_seen_at = NOW()
+		WHERE id = $1
+		AND status = 'IDLE'
+		RETURNING id, serial_number, name, type, status, battery, last_seen_at
+	`
+
+	ctx, cancel := context.WithTimeout(ctx, queryTimeDuration)
+	defer cancel()
+
+	robot := &RobotSummary{}
+
+	err := r.db.QueryRow(
+		ctx,
+		query,
+		robotID,
+		userID,
+	).Scan(
+		&robot.ID,
+		&robot.SerialNumber,
+		&robot.Name,
+		&robot.Category,
+		&robot.Status,
+		&robot.Battery,
+		&robot.LastSeenAt,
+	)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, myerrors.ErrDataNotFound
+		}
+		return nil, err
+	}
+	return robot, nil
 }

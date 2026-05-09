@@ -124,7 +124,7 @@ Method intended to retrieve minimal data from user
 */
 func (s *UsersStore) GetSummaryByID(ctx context.Context, id uuid.UUID) (*UserSummary, error) {
 	query := `
-		SELECT id, username, role
+		SELECT id, username, role, operator_request_status, operator_requested_at
 		FROM users
 		WHERE id = $1
 	`
@@ -142,6 +142,8 @@ func (s *UsersStore) GetSummaryByID(ctx context.Context, id uuid.UUID) (*UserSum
 		&user.ID,
 		&user.Username,
 		&user.UserRole,
+		&user.RequestStatus,
+		&user.RequestedAt,
 	)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {

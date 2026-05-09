@@ -4,6 +4,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/erickgreco/dawg-patrol/internal/apimiddleware"
 	"github.com/erickgreco/dawg-patrol/internal/auth"
 	"github.com/erickgreco/dawg-patrol/internal/home"
 	"github.com/erickgreco/dawg-patrol/internal/robots"
@@ -55,15 +56,17 @@ func main() {
 	robotService := robots.NewRobotService(robotStore)
 	robotHandler := robots.NewRobotHandler(robotService)
 
+	middleware := apimiddleware.NewMiddleware(tokenService, robotService)
+
 	// Wiring home dependencies
-	homeService := home.NewHomeService(userStore, robotStore)
+	homeService := home.NewHomeService(userService, robotService)
 	homeHandler := home.NewHomeHandler(homeService)
 
 	app := &application{
 		config:     cfg,
 		users:      userHandler,
 		robots:     robotHandler,
-		middleware: tokenService,
+		middleware: middleware,
 		home:       homeHandler,
 	}
 

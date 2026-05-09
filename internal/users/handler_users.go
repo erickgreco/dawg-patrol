@@ -4,7 +4,7 @@ import (
 	"errors"
 	"net/http"
 
-	"github.com/erickgreco/dawg-patrol/internal/auth"
+	"github.com/erickgreco/dawg-patrol/internal/apimiddleware"
 	"github.com/erickgreco/dawg-patrol/pkg/json"
 	"github.com/erickgreco/dawg-patrol/pkg/myerrors"
 )
@@ -50,7 +50,6 @@ func (h *Handler) RegisterUserHandler(w http.ResponseWriter, r *http.Request) {
 
 	if err := json.JSONResponse(w, http.StatusCreated, resp); err != nil {
 		myerrors.InternalServerError(w, r, err)
-		return
 	}
 }
 
@@ -86,7 +85,6 @@ func (h *Handler) LogInHandler(w http.ResponseWriter, r *http.Request) {
 
 	if err := json.JSONResponse(w, http.StatusOK, resp); err != nil {
 		myerrors.InternalServerError(w, r, err)
-		return
 	}
 }
 
@@ -95,7 +93,7 @@ User profile retrieves all user data excluding password hash,
 adicionally posible actions user can implement
 */
 func (h *Handler) UserProfileHandler(w http.ResponseWriter, r *http.Request) {
-	userID, err := auth.GetUserIDFromClaimsCtx(r)
+	userID, err := apimiddleware.GetUserIDFromClaimsCtx(r)
 	if err != nil {
 		myerrors.BadRequestResponse(w, r, err)
 		return
@@ -115,12 +113,11 @@ func (h *Handler) UserProfileHandler(w http.ResponseWriter, r *http.Request) {
 
 	if err := json.JSONResponse(w, http.StatusOK, profileResp); err != nil {
 		myerrors.InternalServerError(w, r, err)
-		return
 	}
 }
 
 func (h *Handler) RequestRoleHandler(w http.ResponseWriter, r *http.Request) {
-	userID, err := auth.GetUserIDFromClaimsCtx(r)
+	userID, err := apimiddleware.GetUserIDFromClaimsCtx(r)
 	if err != nil {
 		myerrors.BadRequestResponse(w, r, err)
 		return
@@ -140,6 +137,5 @@ func (h *Handler) RequestRoleHandler(w http.ResponseWriter, r *http.Request) {
 
 	if err := json.JSONResponse(w, http.StatusCreated, reqResp); err != nil {
 		myerrors.InternalServerError(w, r, err)
-		return
 	}
 }

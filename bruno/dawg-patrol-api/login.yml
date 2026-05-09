@@ -13,10 +13,12 @@ http:
     type: json
     data: |-
       {
-        "email": "darkterminal6@example.com",
-        "password": "DarkTerm#55"
+        "email": "bytehunter5@example.com",
+        "password": "ByteHunter!88"
       }
-  auth: inherit
+  auth:
+    type: bearer
+    token: "{{token}}"
 
 runtime:
   scripts:

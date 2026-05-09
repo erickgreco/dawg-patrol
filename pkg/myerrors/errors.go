@@ -24,6 +24,10 @@ var (
 	ErrInvalidRobotType     = errors.New("error, invalid role in name")
 	ErrInvalidUserRole      = errors.New("error, invalid user role")
 	ErrPendingRequest       = errors.New("error, request already pending")
+	ErrUnavailableRobot     = errors.New("error, unavailable robot")
+	ErrInvalidUserID        = errors.New("error, invalid user ID")
+	ErrLowBatteryLevel      = errors.New("error, battery level below 10%")
+	ErrRobotNotFound        = errors.New("error, robot not found")
 )
 
 func InternalServerError(w http.ResponseWriter, r *http.Request, err error) {

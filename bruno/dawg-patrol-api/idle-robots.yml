@@ -1,0 +1,17 @@
+info:
+  name: idle-robots
+  type: http
+  seq: 11
+
+http:
+  method: GET
+  url: "{{base_url}}/v1/robots/idle-robots"
+  auth:
+    type: bearer
+    token: "{{token}}"
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

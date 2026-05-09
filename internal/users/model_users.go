@@ -51,9 +51,11 @@ type AuthResponse struct {
 
 // Payload to be used once user is auth
 type UserSummary struct {
-	ID       uuid.UUID   `json:"id"`
-	Username string      `json:"username"`
-	UserRole domain.Role `json:"role"`
+	ID            uuid.UUID   `json:"id"`
+	Username      string      `json:"username"`
+	UserRole      domain.Role `json:"role"`
+	RequestStatus string      `json:"request_status"`
+	RequestedAt   *time.Time  `json:"requested_at"`
 }
 
 // Actions to be shown in profile handler

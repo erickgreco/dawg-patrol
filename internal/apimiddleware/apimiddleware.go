@@ -1,4 +1,4 @@
-package auth
+package apimiddleware
 
 import (
 	"context"
@@ -6,16 +6,35 @@ import (
 	"slices"
 	"strings"
 
+	"github.com/erickgreco/dawg-patrol/internal/auth"
 	"github.com/erickgreco/dawg-patrol/internal/domain"
+	"github.com/erickgreco/dawg-patrol/internal/robots"
 	"github.com/erickgreco/dawg-patrol/pkg/myerrors"
+	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
 )
+
+type Middleware struct {
+	tokenService *auth.TokenService
+	robotService *robots.Service
+}
+
+func NewMiddleware(tokenService *auth.TokenService, robotService *robots.Service) *Middleware {
+	return &Middleware{
+		tokenService: tokenService,
+		robotService: robotService,
+	}
+}
 
 type claimsKey string
 
 const claimsCtx claimsKey = "claims"
 
-func (mw *TokenService) AuthMiddleware(next http.Handler) http.Handler {
+type robotKey string
+
+const robotCtx robotKey = "robot"
+
+func (mw *Middleware) AuthMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
 		authHeader := r.Header.Get("Authorization")
@@ -33,7 +52,7 @@ func (mw *TokenService) AuthMiddleware(next http.Handler) http.Handler {
 
 		tokenString := parts[1]
 
-		claims, err := mw.Validate(tokenString)
+		claims, err := mw.tokenService.Validate(tokenString)
 		if err != nil {
 			switch err {
 			case myerrors.ErrEmptyToken, myerrors.ErrInvalidToken:
@@ -55,17 +74,12 @@ func (mw *TokenService) AuthMiddleware(next http.Handler) http.Handler {
 Func created to retrieve claims from context and
 use them without consulting DB
 */
-func GetClaimsFromCtx(r *http.Request) (*Claims, error) {
-	claims, ok := r.Context().Value(claimsCtx).(*Claims)
+func GetClaimsFromCtx(r *http.Request) (*auth.Claims, error) {
+	claims, ok := r.Context().Value(claimsCtx).(*auth.Claims)
 	if !ok || claims == nil {
 		return nil, myerrors.ErrInvalidToken
 	}
 	return claims, nil
-}
-
-// Helper created to parse uuid from claimsCtx easily
-func (c *Claims) UserID() (uuid.UUID, error) {
-	return uuid.Parse(c.Sub)
 }
 
 func GetUserIDFromClaimsCtx(r *http.Request) (uuid.UUID, error) {
@@ -77,7 +91,7 @@ func GetUserIDFromClaimsCtx(r *http.Request) (uuid.UUID, error) {
 }
 
 // Helper to get role from claimsCtx
-func RoleFromClaimsCtx(r *http.Request) (domain.Role, error) {
+func ValidRoleFromClaimsCtx(r *http.Request) (domain.Role, error) {
 	claims, err := GetClaimsFromCtx(r)
 	if err != nil {
 		return "", err
@@ -97,10 +111,10 @@ func RoleFromClaimsCtx(r *http.Request) (domain.Role, error) {
 This is a middleware setup to protect routes according to an
 specified role
 */
-func (mw *TokenService) RequireRole(allowedRoles ...domain.Role) func(http.Handler) http.Handler {
+func (mw *Middleware) RequireRole(allowedRoles ...domain.Role) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			role, err := RoleFromClaimsCtx(r)
+			role, err := ValidRoleFromClaimsCtx(r)
 			if err != nil {
 				myerrors.UnauthorizedResponse(w, r, err)
 				return
@@ -115,11 +129,52 @@ func (mw *TokenService) RequireRole(allowedRoles ...domain.Role) func(http.Handl
 }
 
 // Key func created for rate limit keys
-func (mw *TokenService) KeyByUserID(r *http.Request) (string, error) {
+func (mw *Middleware) KeyByUserID(r *http.Request) (string, error) {
 	claims, err := GetClaimsFromCtx(r)
 	if err != nil || claims == nil {
 		return "unknown", nil
 	}
 
-	return claims.ID, nil
+	return claims.Sub, nil
+}
+
+func (mw *Middleware) RobotContextMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+
+		idParam := chi.URLParam(r, "robotID")
+
+		robotID, err := uuid.Parse(idParam)
+		if err != nil {
+			myerrors.BadRequestResponse(w, r, err)
+			return
+		}
+
+		ctx := r.Context()
+
+		robot, err := mw.robotService.RobotByID(ctx, robotID)
+		if err != nil {
+			myerrors.NotFoundResponse(w, r, err)
+			return
+		}
+
+		ctx = context.WithValue(ctx, robotCtx, robot)
+
+		next.ServeHTTP(w, r.WithContext(ctx))
+	})
+}
+
+func GetRobotFromCtx(r *http.Request) (*robots.RobotSummary, error) {
+	robot, ok := r.Context().Value(robotCtx).(*robots.RobotSummary)
+	if !ok || robot == nil {
+		return nil, myerrors.ErrUnavailableRobot
+	}
+	return robot, nil
+}
+
+func GetRobotIDFromCtx(r *http.Request) (uuid.UUID, error) {
+	robot, err := GetRobotFromCtx(r)
+	if err != nil {
+		return uuid.Nil, err
+	}
+	return robot.ID, nil
 }

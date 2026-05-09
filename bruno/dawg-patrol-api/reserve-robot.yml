@@ -1,0 +1,17 @@
+info:
+  name: reserve-robot
+  type: http
+  seq: 12
+
+http:
+  method: PATCH
+  url: "{{base_url}}/v1/robots/{{robotID}}/reserve-robot"
+  auth:
+    type: bearer
+    token: "{{token}}"
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

@@ -2,6 +2,7 @@ package robots
 
 import (
 	"context"
+	"errors"
 	"math/rand"
 	"regexp"
 	"strings"
@@ -19,11 +20,21 @@ var (
 	typeRegex = regexp.MustCompile(`([A-Z])\d+$`)
 )
 
+const (
+	highLevel    = "Battery level under 80%"
+	mediumLevel  = "Battery level under 50%"
+	lowLevel     = "Battery level under 20%"
+	invalidLevel = "Battery level insufficient"
+	validLevel   = "Battery level above 80%"
+)
+
 type RobotsRepo interface {
 	RegisterRobot(context.Context, *Robot) error
 	RegisterEvent(context.Context, *RobotEvents) error
 	GetIdleRobots(context.Context) ([]*RobotSummary, error)
 	GetUnavailableRobots(context.Context) ([]*RobotSummary, error)
+	GetByID(ctx context.Context, robotID uuid.UUID) (*RobotSummary, error)
+	ReserveRobot(ctx context.Context, robotID, userID uuid.UUID) (*RobotSummary, error)
 }
 
 type Service struct {
@@ -140,9 +151,8 @@ func AssignTypeFromName(name string) (domain.Category, error) {
 
 /*
 This method will apply business logic as it grows, will work with roles
-! Currently it receives a role but is unused
 */
-func (serv *Service) IdleRobots(ctx context.Context, role *domain.Role) (*IdleRobots, error) {
+func (serv *Service) IdleRobots(ctx context.Context) (*IdleRobots, error) {
 	idleRobots, err := serv.store.GetIdleRobots(ctx)
 	if err != nil {
 		return nil, err
@@ -176,4 +186,75 @@ func RandomStatus() domain.Status {
 	robotType := categories[rand.Intn(len(categories))]
 
 	return robotType
+}
+
+/*
+Method implements battery validation before robot reserve,
+previous to starting ws conn
+*/
+func (serv *Service) RobotByID(ctx context.Context, robotID uuid.UUID) (*RobotSummary, error) {
+	robot, err := serv.store.GetByID(ctx, robotID)
+	if err != nil {
+		if errors.Is(err, myerrors.ErrDataNotFound) {
+			return nil, myerrors.ErrUnavailableRobot
+		}
+		return nil, err
+	}
+
+	batteryLevel := BatteryStatus(robot.Battery)
+
+	return &RobotSummary{
+		ID:           robot.ID,
+		SerialNumber: robot.SerialNumber,
+		Name:         robot.Name,
+		Category:     robot.Category,
+		Status:       batteryLevel,
+		Battery:      robot.Battery,
+		LastSeenAt:   robot.LastSeenAt,
+	}, nil
+}
+
+func BatteryStatus(level int64) string {
+	switch {
+	case level >= 80:
+		return validLevel
+	case level >= 50:
+		return highLevel
+	case level >= 20:
+		return mediumLevel
+	case level >= 10:
+		return lowLevel
+	default:
+		return invalidLevel
+	}
+}
+
+func (serv *Service) RobotReservation(ctx context.Context, robotID, userID uuid.UUID) (*RobotSummary, error) {
+	robot, err := serv.store.GetByID(ctx, robotID)
+	if err != nil {
+		if errors.Is(err, myerrors.ErrDataNotFound) {
+			return nil, myerrors.ErrRobotNotFound
+		}
+		return nil, err
+	}
+
+	if robot.Status != string(domain.IdleStatus) {
+		return nil, myerrors.ErrUnavailableRobot
+	}
+
+	batteryLevel := BatteryStatus(robot.Battery)
+
+	if batteryLevel == lowLevel {
+		return nil, myerrors.ErrLowBatteryLevel
+	}
+
+	reservedRobot, err := serv.store.ReserveRobot(ctx, robot.ID, userID)
+	if err != nil {
+		if errors.Is(err, myerrors.ErrDataNotFound) {
+			return nil, myerrors.ErrRobotNotFound
+		}
+		return nil, err
+	}
+
+	return reservedRobot, nil
 }

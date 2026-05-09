@@ -50,6 +50,19 @@ func (h *Handler) RegisterRobotHandler(w http.ResponseWriter, r *http.Request) {
 
 	if err := json.JSONResponse(w, http.StatusAccepted, resp); err != nil {
 		myerrors.InternalServerError(w, r, err)
+	}
+}
+
+func (h *Handler) IdleRobotsHandler(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	robots, err := h.service.IdleRobots(ctx)
+	if err != nil {
+		myerrors.InternalServerError(w, r, err)
 		return
+	}
+
+	if err := json.JSONResponse(w, http.StatusOK, robots); err != nil {
+		myerrors.InternalServerError(w, r, err)
 	}
 }

@@ -33,7 +33,7 @@ type RobotSummary struct {
 	ID           uuid.UUID       `json:"id"`
 	SerialNumber string          `json:"serial_number"`
 	Name         string          `json:"name"`
-	Category     domain.Category `json:"role"`
+	Category     domain.Category `json:"type"`
 	Status       string          `json:"status"`
 	Battery      int64           `json:"battery"`
 	LastSeenAt   time.Time       `json:"last_seen_at"`
