@@ -203,43 +203,85 @@ func (r *RobotsStore) GetByID(ctx context.Context, robotID uuid.UUID) (*RobotSum
 
 /*
 Method to reserve robot previous to start ws conn
+Updates robot status to 'IN_USE', in case robot is not IDLE
+it returns with an error
 */
-func (r *RobotsStore) ReserveRobot(ctx context.Context, robotID, userID uuid.UUID) (*RobotSummary, error) {
+func (r *RobotsStore) ReserveRobot(ctx context.Context, reservationID, userID, robotID uuid.UUID) (*RobotReservation, error) {
 	query := `
-		UPDATE robots
-		SET 
-			status = 'IN_USE', 
-			last_operator_id = $2, 
-			last_seen_at = NOW()
-		WHERE id = $1
-		AND status = 'IDLE'
-		RETURNING id, serial_number, name, type, status, battery, last_seen_at
+		WITH updated_robot AS (
+			UPDATE robots
+			SET 
+				status = 'IN_USE', last_seen_at = NOW()
+			WHERE id = $3
+			AND status = 'IDLE'
+			RETURNING id, status, last_seen_at
+		),
+		inserted_reservation AS (
+			INSERT INTO robot_reservations (
+				id, user_id, robot_id, expires_at, active
+			)
+			SELECT
+				$1, $2, id, NOW() + INTERVAL '30 minutes', TRUE
+			FROM updated_robot
+			RETURNING
+				id, user_id, robot_id, expires_at, active, created_at
+		)
+		SELECT
+    		ir.id, ir.user_id, ir.robot_id, ir.expires_at, ir.active, ir.created_at, ur.status, ur.last_seen_at
+		FROM inserted_reservation ir
+		JOIN updated_robot ur ON ir.robot_id = ur.id;
 	`
 
 	ctx, cancel := context.WithTimeout(ctx, queryTimeDuration)
 	defer cancel()
 
-	robot := &RobotSummary{}
+	reservation := &RobotReservation{}
 
 	err := r.db.QueryRow(
 		ctx,
 		query,
-		robotID,
+		reservationID,
 		userID,
+		robotID,
 	).Scan(
-		&robot.ID,
-		&robot.SerialNumber,
-		&robot.Name,
-		&robot.Category,
-		&robot.Status,
-		&robot.Battery,
-		&robot.LastSeenAt,
+		&reservation.ID,
+		&reservation.UserID,
+		&reservation.RobotID,
+		&reservation.ExpiresAt,
+		&reservation.Active,
+		&reservation.CreatedAt,
+		&reservation.Status,
+		&reservation.LastSeenAt,
 	)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			return nil, myerrors.ErrDataNotFound
+			return nil, myerrors.ErrUnavailableRobot
 		}
 		return nil, err
 	}
-	return robot, nil
+	return reservation, nil
+}
+
+/*
+This method will be periodically executed by a goroutine to clean
+expired reservations
+*/
+func (r *RobotsStore) CleanExpiredReservations(ctx context.Context) error {
+	query := `
+		WITH expired AS (
+			UPDATE robot_reservations
+			SET active = FALSE
+			WHERE active = TRUE
+			AND expires_at <= NOW()
+			RETURNING robot_id
+		)
+		UPDATE robots
+		SET status = 'IDLE'
+		WHERE id IN (
+			SELECT robot_id FROM expired
+		);
+	`
+	_, err := r.db.Exec(ctx, query)
+
+	return err
 }

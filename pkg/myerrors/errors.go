@@ -71,3 +71,7 @@ func ForbiddenResponse(w http.ResponseWriter, r *http.Request, err error) {
 
 	json.WriteJSONError(w, http.StatusForbidden, err.Error())
 }
+
+func CleanUpWorkerError(err error) {
+	log.Printf("failed to clean expired reservations: %v", err)
+}

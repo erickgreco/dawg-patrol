@@ -57,11 +57,9 @@ func (h *HomeHandler) ReserveRobot(w http.ResponseWriter, r *http.Request) {
 
 	ctx := r.Context()
 
-	reservedRobot, err := h.service.robotService.RobotReservation(ctx, robotID, userID)
+	reservation, err := h.service.robotService.RobotReservation(ctx, robotID, userID)
 	if err != nil {
 		switch err {
-		case myerrors.ErrRobotNotFound:
-			myerrors.NotFoundResponse(w, r, err)
 		case myerrors.ErrUnavailableRobot:
 			myerrors.ConflictResponse(w, r, err)
 		case myerrors.ErrLowBatteryLevel:
@@ -72,7 +70,7 @@ func (h *HomeHandler) ReserveRobot(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := json.JSONResponse(w, http.StatusOK, reservedRobot); err != nil {
+	if err := json.JSONResponse(w, http.StatusOK, reservation); err != nil {
 		myerrors.InternalServerError(w, r, err)
 	}
 }

@@ -5,4 +5,4 @@ variables:
   - name: base_url
     value: http://localhost:8080
   - name: robotID
-    value: 72e3a18f-8355-4de5-9cb0-c59ee761a347
+    value: b7b3525e-e8e1-4226-b4b3-6b70c72b4e4e

@@ -56,6 +56,9 @@ func main() {
 	robotService := robots.NewRobotService(robotStore)
 	robotHandler := robots.NewRobotHandler(robotService)
 
+	// Initialization for reservations cleaner
+	robots.ReservationCleanUpWorker(robotStore)
+
 	middleware := apimiddleware.NewMiddleware(tokenService, robotService)
 
 	// Wiring home dependencies

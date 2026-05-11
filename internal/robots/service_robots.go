@@ -34,7 +34,8 @@ type RobotsRepo interface {
 	GetIdleRobots(context.Context) ([]*RobotSummary, error)
 	GetUnavailableRobots(context.Context) ([]*RobotSummary, error)
 	GetByID(ctx context.Context, robotID uuid.UUID) (*RobotSummary, error)
-	ReserveRobot(ctx context.Context, robotID, userID uuid.UUID) (*RobotSummary, error)
+	ReserveRobot(ctx context.Context, reservationID, userID, robotID uuid.UUID) (*RobotReservation, error)
+	CleanExpiredReservations(ctx context.Context) error
 }
 
 type Service struct {
@@ -229,7 +230,7 @@ func BatteryStatus(level int64) string {
 	}
 }
 
-func (serv *Service) RobotReservation(ctx context.Context, robotID, userID uuid.UUID) (*RobotSummary, error) {
+func (serv *Service) RobotReservation(ctx context.Context, robotID, userID uuid.UUID) (*RobotReservation, error) {
 	robot, err := serv.store.GetByID(ctx, robotID)
 	if err != nil {
 		if errors.Is(err, myerrors.ErrDataNotFound) {
@@ -248,13 +249,15 @@ func (serv *Service) RobotReservation(ctx context.Context, robotID, userID uuid.
 		return nil, myerrors.ErrLowBatteryLevel
 	}
 
-	reservedRobot, err := serv.store.ReserveRobot(ctx, robot.ID, userID)
+	reservationID := uuid.New()
+
+	reservation, err := serv.store.ReserveRobot(ctx, reservationID, userID, robot.ID)
 	if err != nil {
-		if errors.Is(err, myerrors.ErrDataNotFound) {
-			return nil, myerrors.ErrRobotNotFound
+		if errors.Is(err, myerrors.ErrUnavailableRobot) {
+			return nil, myerrors.ErrUnavailableRobot
 		}
 		return nil, err
 	}
 
-	return reservedRobot, nil
+	return reservation, nil
 }
