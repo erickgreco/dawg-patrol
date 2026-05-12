@@ -34,6 +34,10 @@ type robotKey string
 
 const robotCtx robotKey = "robot"
 
+type reservationKey = string
+
+const reservationCtx reservationKey = "reservation"
+
 func (mw *Middleware) AuthMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
@@ -177,4 +181,44 @@ func GetRobotIDFromCtx(r *http.Request) (uuid.UUID, error) {
 		return uuid.Nil, err
 	}
 	return robot.ID, nil
+}
+
+func (mw *Middleware) ReservationCtxMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		idParam := chi.URLParam(r, "reservationID")
+
+		reservationID, err := uuid.Parse(idParam)
+		if err != nil {
+			myerrors.BadRequestResponse(w, r, err)
+			return
+		}
+
+		ctx := r.Context()
+
+		reservation, err := mw.robotService.ReservationByID(ctx, reservationID)
+		if err != nil {
+			myerrors.NotFoundResponse(w, r, err)
+			return
+		}
+
+		ctx = context.WithValue(ctx, reservationCtx, reservation)
+
+		next.ServeHTTP(w, r.WithContext(ctx))
+	})
+}
+
+func GetReservationFromCtx(r *http.Request) (*robots.RobotReservation, error) {
+	reservation, ok := r.Context().Value(reservationCtx).(*robots.RobotReservation)
+	if !ok || reservation == nil {
+		return nil, myerrors.ErrInvalidReservation
+	}
+	return reservation, nil
+}
+
+func GetReservationIDFromCtx(r *http.Request) (uuid.UUID, error) {
+	reservation, err := GetReservationFromCtx(r)
+	if err != nil {
+		return uuid.Nil, err
+	}
+	return reservation.ID, nil
 }

@@ -36,6 +36,9 @@ type RobotsRepo interface {
 	GetByID(ctx context.Context, robotID uuid.UUID) (*RobotSummary, error)
 	ReserveRobot(ctx context.Context, reservationID, userID, robotID uuid.UUID) (*RobotReservation, error)
 	CleanExpiredReservations(ctx context.Context) error
+	ValidateReservation(ctx context.Context, reservationID, userID, robotID uuid.UUID) (uuid.UUID, error)
+	GetReservationByID(ctx context.Context, reservationID uuid.UUID) (*RobotReservation, error)
+	ExtendReservation(ctx context.Context, reservationID uuid.UUID) error
 }
 
 type Service struct {
@@ -259,5 +262,16 @@ func (serv *Service) RobotReservation(ctx context.Context, robotID, userID uuid.
 		return nil, err
 	}
 
+	return reservation, nil
+}
+
+func (serv *Service) ReservationByID(ctx context.Context, reservationID uuid.UUID) (*RobotReservation, error) {
+	reservation, err := serv.store.GetReservationByID(ctx, reservationID)
+	if err != nil {
+		if errors.Is(err, myerrors.ErrInvalidReservation) {
+			return nil, myerrors.ErrInvalidReservation
+		}
+		return nil, err
+	}
 	return reservation, nil
 }

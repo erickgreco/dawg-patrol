@@ -10,6 +10,13 @@ http:
     type: bearer
     token: "{{token}}"
 
+runtime:
+  scripts:
+    - type: after-response
+      code: |-
+        const data = res.getBody();
+        bru.setEnvVar("reservationID", data.data.reservation_id);
+
 settings:
   encodeUrl: true
   timeout: 0

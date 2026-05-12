@@ -1,0 +1,17 @@
+info:
+  name: ws-robot-telemetry
+  type: websocket
+  seq: 13
+
+websocket:
+  url: "{{base_url}}/v1/robots/{{robotID}}/{{reservationID}}/ws/robot-telemetry"
+  message:
+    type: json
+    data: "{}"
+  auth:
+    type: bearer
+    token: "{{token}}"
+
+settings:
+  timeout: 0
+  keepAliveInterval: 0

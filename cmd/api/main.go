@@ -9,6 +9,7 @@ import (
 	"github.com/erickgreco/dawg-patrol/internal/home"
 	"github.com/erickgreco/dawg-patrol/internal/robots"
 	"github.com/erickgreco/dawg-patrol/internal/users"
+	"github.com/erickgreco/dawg-patrol/internal/websockets"
 	"github.com/erickgreco/dawg-patrol/pkg/db"
 	"github.com/erickgreco/dawg-patrol/pkg/env"
 )
@@ -61,6 +62,12 @@ func main() {
 
 	middleware := apimiddleware.NewMiddleware(tokenService, robotService)
 
+	// WS wiring and hub intialization
+	hub := websockets.NewHub()
+	go hub.Run()
+	wsService := websockets.NewWebSocketService(userStore, robotStore)
+	wsHandler := websockets.NewWebSocketHandler(wsService, hub)
+
 	// Wiring home dependencies
 	homeService := home.NewHomeService(userService, robotService)
 	homeHandler := home.NewHomeHandler(homeService)
@@ -71,6 +78,7 @@ func main() {
 		robots:     robotHandler,
 		middleware: middleware,
 		home:       homeHandler,
+		ws:         wsHandler,
 	}
 
 	mux := app.mount()

@@ -5,4 +5,6 @@ variables:
   - name: base_url
     value: http://localhost:8080
   - name: robotID
-    value: b7b3525e-e8e1-4226-b4b3-6b70c72b4e4e
+    value: 860d33be-0f92-4b55-acdc-b3855d607d7a
+  - name: reservationID
+    value: f288961c-b7ec-4904-9e3e-e90e6132b679

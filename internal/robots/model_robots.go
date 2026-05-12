@@ -62,12 +62,12 @@ type Command struct {
 }
 
 type RobotReservation struct {
-	ID         uuid.UUID `json:"reservation_id"`
-	UserID     uuid.UUID `json:"user_id"`
-	RobotID    uuid.UUID `json:"robot_id"`
-	ExpiresAt  time.Time `json:"expires_at"`
-	Active     bool      `json:"active"`
-	CreatedAt  time.Time `json:"created_at"`
-	Status     string    `json:"status"`
-	LastSeenAt time.Time `json:"last_seen_at"`
+	ID         uuid.UUID  `json:"reservation_id"`
+	UserID     uuid.UUID  `json:"user_id"`
+	RobotID    uuid.UUID  `json:"robot_id"`
+	ExpiresAt  time.Time  `json:"expires_at"`
+	Active     bool       `json:"active"`
+	CreatedAt  time.Time  `json:"created_at"`
+	Status     *string    `json:"status"`
+	LastSeenAt *time.Time `json:"last_seen_at"`
 }

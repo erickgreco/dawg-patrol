@@ -28,6 +28,7 @@ var (
 	ErrInvalidUserID        = errors.New("error, invalid user ID")
 	ErrLowBatteryLevel      = errors.New("error, battery level below 10%")
 	ErrRobotNotFound        = errors.New("error, robot not found")
+	ErrInvalidReservation   = errors.New("error, invalid reservation")
 )
 
 func InternalServerError(w http.ResponseWriter, r *http.Request, err error) {

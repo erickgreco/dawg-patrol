@@ -10,6 +10,14 @@ http:
     type: bearer
     token: "{{token}}"
 
+runtime:
+  scripts:
+    - type: after-response
+      code: |-
+        const data = res.getBody();
+        const firstRobot = data.data.AssistantRobots[0];
+        bru.setEnvVar("robotID", firstRobot.id);
+
 settings:
   encodeUrl: true
   timeout: 0

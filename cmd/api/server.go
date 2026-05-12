@@ -10,6 +10,7 @@ import (
 	"github.com/erickgreco/dawg-patrol/internal/home"
 	"github.com/erickgreco/dawg-patrol/internal/robots"
 	"github.com/erickgreco/dawg-patrol/internal/users"
+	"github.com/erickgreco/dawg-patrol/internal/websockets"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/httprate"
@@ -21,6 +22,7 @@ type application struct {
 	robots     *robots.Handler
 	middleware *apimiddleware.Middleware
 	home       *home.HomeHandler
+	ws         *websockets.WSHandler
 }
 
 type config struct {
@@ -83,6 +85,12 @@ func (app *application) mount() http.Handler {
 				r.Use(app.middleware.RobotContextMiddleware)
 
 				r.Patch("/reserve-robot", app.home.ReserveRobot)
+
+				r.Route("/{reservationID}", func(r chi.Router) {
+					r.Use(app.middleware.ReservationCtxMiddleware)
+
+					r.Get("/ws/robot-telemetry", app.ws.RobotTelemetryWS)
+				})
 			})
 		})
 	})

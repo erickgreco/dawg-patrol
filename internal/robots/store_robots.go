@@ -285,3 +285,80 @@ func (r *RobotsStore) CleanExpiredReservations(ctx context.Context) error {
 
 	return err
 }
+
+func (r *RobotsStore) ValidateReservation(ctx context.Context, reservationID, userID, robotID uuid.UUID) (uuid.UUID, error) {
+	query := `
+		SELECT EXISTS (
+			SELECT 1
+			FROM robot_reservations
+			WHERE id = $1
+				AND user_id = $2
+				AND robot_id = $3
+				AND active
+				AND expires_at > NOW()
+		);
+	`
+
+	var valid bool
+
+	err := r.db.QueryRow(
+		ctx,
+		query,
+		reservationID,
+		userID,
+		robotID,
+	).Scan(
+		&valid,
+	)
+	if err != nil {
+		return uuid.Nil, err
+	}
+
+	if !valid {
+		return uuid.Nil, myerrors.ErrInvalidReservation
+	}
+
+	return reservationID, nil
+}
+
+func (r *RobotsStore) GetReservationByID(ctx context.Context, reservationID uuid.UUID) (*RobotReservation, error) {
+	query := `
+		SELECT id, user_id, robot_id, expires_at, active, created_at
+		FROM robot_reservations
+		WHERE id = $1
+	`
+
+	robotReservation := &RobotReservation{}
+
+	err := r.db.QueryRow(
+		ctx,
+		query,
+		reservationID,
+	).Scan(
+		&robotReservation.ID,
+		&robotReservation.UserID,
+		&robotReservation.RobotID,
+		&robotReservation.ExpiresAt,
+		&robotReservation.Active,
+		&robotReservation.CreatedAt,
+	)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, myerrors.ErrInvalidReservation
+		}
+		return nil, err
+	}
+	return robotReservation, nil
+}
+
+func (r *RobotsStore) ExtendReservation(ctx context.Context, reservationID uuid.UUID) error {
+	query := `
+		UPDATE robot_reservations
+		SET expires_at = NOW() + INTERVAL '30 minutes'
+		WHERE id = $1
+		AND active = TRUE
+	`
+	_, err := r.db.Exec(ctx, query, reservationID)
+
+	return err
+}
