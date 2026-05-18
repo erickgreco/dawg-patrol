@@ -139,3 +139,35 @@ func (h *Handler) RequestRoleHandler(w http.ResponseWriter, r *http.Request) {
 		myerrors.InternalServerError(w, r, err)
 	}
 }
+
+/*
+RefreshTokenHandler validates the provided refresh JWT, rotates the token pair,
+and returns a new access token alongside a new refresh token.
+No Authorization header required — intended to be called when the access token expires.
+Only reachable by ADMIN and OPERATOR since VIEWER never receives a refresh token on login.
+*/
+func (h *Handler) RefreshTokenHandler(w http.ResponseWriter, r *http.Request) {
+	var payload RefreshRequest
+
+	if err := json.ReadJSON(w, r, &payload); err != nil {
+		myerrors.BadRequestResponse(w, r, err)
+		return
+	}
+
+	if err := json.Validate.Struct(payload); err != nil {
+		myerrors.BadRequestResponse(w, r, err)
+		return
+	}
+
+	ctx := r.Context()
+
+	resp, err := h.service.RefreshAccessToken(ctx, payload.RefreshToken)
+	if err != nil {
+		myerrors.UnauthorizedResponse(w, r, err)
+		return
+	}
+
+	if err := json.JSONResponse(w, http.StatusOK, resp); err != nil {
+		myerrors.InternalServerError(w, r, err)
+	}
+}

@@ -1,25 +1,41 @@
-{"time":"2026-05-12T00:07:31.128893151-06:00","level":"INFO","msg":"user created","username":"shadowbyte","email":"shadowbyte0@example.com","password":"Shadow#2026"}
-{"time":"2026-05-12T00:07:31.177661217-06:00","level":"INFO","msg":"user created","username":"neo_runner","email":"neo_runner1@example.com","password":"NeoRun!42"}
-{"time":"2026-05-12T00:07:31.226161871-06:00","level":"INFO","msg":"user created","username":"pixelstorm","email":"pixelstorm2@example.com","password":"Pixel$Storm7"}
-{"time":"2026-05-12T00:07:31.274894951-06:00","level":"INFO","msg":"user created","username":"zerocool","email":"zerocool3@example.com","password":"ZeroCool#99"}
-{"time":"2026-05-12T00:07:31.323454476-06:00","level":"INFO","msg":"user created","username":"ghostkernel","email":"ghostkernel4@example.com","password":"Ghost@Kernel1"}
-{"time":"2026-05-12T00:07:31.372299866-06:00","level":"INFO","msg":"user created","username":"bytehunter","email":"bytehunter5@example.com","password":"ByteHunter!88"}
-{"time":"2026-05-12T00:07:31.420801072-06:00","level":"INFO","msg":"user created","username":"darkterminal","email":"darkterminal6@example.com","password":"DarkTerm#55"}
-{"time":"2026-05-12T00:07:31.468783085-06:00","level":"INFO","msg":"user created","username":"hexdrifter","email":"hexdrifter7@example.com","password":"HexDrifter@22"}
-{"time":"2026-05-12T00:07:31.512756439-06:00","level":"INFO","msg":"user created","username":"syntaxerror","email":"syntaxerror8@example.com","password":"Syntax!Error9"}
-{"time":"2026-05-12T00:07:31.55617766-06:00","level":"INFO","msg":"user created","username":"rootaccess","email":"rootaccess9@example.com","password":"RootAccess#77"}
-{"time":"2026-05-12T00:07:31.599539178-06:00","level":"INFO","msg":"user created","username":"packetghost","email":"packetghost10@example.com","password":"PacketGhost$5"}
-{"time":"2026-05-12T00:07:31.643093408-06:00","level":"INFO","msg":"user created","username":"midnightdev","email":"midnightdev11@example.com","password":"MidnightDev!3"}
-{"time":"2026-05-12T00:07:31.686778883-06:00","level":"INFO","msg":"user created","username":"stackbreaker","email":"stackbreaker12@example.com","password":"StackBreaker#1"}
-{"time":"2026-05-12T00:07:31.730834632-06:00","level":"INFO","msg":"user created","username":"silentproxy","email":"silentproxy13@example.com","password":"SilentProxy@66"}
-{"time":"2026-05-12T00:07:31.774549172-06:00","level":"INFO","msg":"user created","username":"kernelpanic","email":"kernelpanic14@example.com","password":"KernelPanic!404"}
-{"time":"2026-05-12T00:07:31.818153015-06:00","level":"INFO","msg":"user created","username":"devphantom","email":"devphantom15@example.com","password":"DevPhantom#12"}
-{"time":"2026-05-12T00:07:31.862064794-06:00","level":"INFO","msg":"user created","username":"binarywolf","email":"binarywolf16@example.com","password":"BinaryWolf@8"}
-{"time":"2026-05-12T00:07:31.905599076-06:00","level":"INFO","msg":"user created","username":"nullpointer","email":"nullpointer17@example.com","password":"NullPointer!500"}
-{"time":"2026-05-12T00:07:31.949346588-06:00","level":"INFO","msg":"user created","username":"cybernomad","email":"cybernomad18@example.com","password":"CyberNomad#23"}
-{"time":"2026-05-12T00:07:31.992899395-06:00","level":"INFO","msg":"user created","username":"gopherx","email":"gopherx19@example.com","password":"GopherX@2026"}
-{"time":"2026-05-12T00:07:32.036471368-06:00","level":"INFO","msg":"user created","username":"tcpwizard","email":"tcpwizard20@example.com","password":"TCPWizard!11"}
-{"time":"2026-05-12T00:07:32.080306854-06:00","level":"INFO","msg":"user created","username":"segfaultsam","email":"segfaultsam21@example.com","password":"SegFaultSam#7"}
-{"time":"2026-05-12T00:07:32.123965649-06:00","level":"INFO","msg":"user created","username":"cloudraider","email":"cloudraider22@example.com","password":"CloudRaider@14"}
-{"time":"2026-05-12T00:07:32.168151372-06:00","level":"INFO","msg":"user created","username":"crypticnode","email":"crypticnode23@example.com","password":"CrypticNode!64"}
-{"time":"2026-05-12T00:07:32.213472781-06:00","level":"INFO","msg":"user created","username":"overflowking","email":"overflowking24@example.com","password":"OverflowKing#2"}
+{"time":"2026-05-18T13:33:13.132361114-06:00","level":"INFO","msg":"user created","username":"shadowbyte","email":"shadowbyte0@example.com","password":"Shadow#2026"}
+{"time":"2026-05-18T13:33:13.178451231-06:00","level":"INFO","msg":"user created","username":"neo_runner","email":"neo_runner1@example.com","password":"NeoRun!42"}
+{"time":"2026-05-18T13:33:13.22328273-06:00","level":"INFO","msg":"user created","username":"pixelstorm","email":"pixelstorm2@example.com","password":"Pixel$Storm7"}
+{"time":"2026-05-18T13:33:13.267926809-06:00","level":"INFO","msg":"user created","username":"zerocool","email":"zerocool3@example.com","password":"ZeroCool#99"}
+{"time":"2026-05-18T13:33:13.31244453-06:00","level":"INFO","msg":"user created","username":"ghostkernel","email":"ghostkernel4@example.com","password":"Ghost@Kernel1"}
+{"time":"2026-05-18T13:33:13.357225224-06:00","level":"INFO","msg":"user created","username":"bytehunter","email":"bytehunter5@example.com","password":"ByteHunter!88"}
+{"time":"2026-05-18T13:33:13.402189272-06:00","level":"INFO","msg":"user created","username":"darkterminal","email":"darkterminal6@example.com","password":"DarkTerm#55"}
+{"time":"2026-05-18T13:33:13.44746845-06:00","level":"INFO","msg":"user created","username":"hexdrifter","email":"hexdrifter7@example.com","password":"HexDrifter@22"}
+{"time":"2026-05-18T13:33:13.492822809-06:00","level":"INFO","msg":"user created","username":"syntaxerror","email":"syntaxerror8@example.com","password":"Syntax!Error9"}
+{"time":"2026-05-18T13:33:13.537985529-06:00","level":"INFO","msg":"user created","username":"rootaccess","email":"rootaccess9@example.com","password":"RootAccess#77"}
+{"time":"2026-05-18T13:33:13.582761504-06:00","level":"INFO","msg":"user created","username":"packetghost","email":"packetghost10@example.com","password":"PacketGhost$5"}
+{"time":"2026-05-18T13:33:13.627155284-06:00","level":"INFO","msg":"user created","username":"midnightdev","email":"midnightdev11@example.com","password":"MidnightDev!3"}
+{"time":"2026-05-18T13:33:13.671639823-06:00","level":"INFO","msg":"user created","username":"stackbreaker","email":"stackbreaker12@example.com","password":"StackBreaker#1"}
+{"time":"2026-05-18T13:33:13.716054973-06:00","level":"INFO","msg":"user created","username":"silentproxy","email":"silentproxy13@example.com","password":"SilentProxy@66"}
+{"time":"2026-05-18T13:33:13.760877095-06:00","level":"INFO","msg":"user created","username":"kernelpanic","email":"kernelpanic14@example.com","password":"KernelPanic!404"}
+{"time":"2026-05-18T13:33:13.805392251-06:00","level":"INFO","msg":"user created","username":"devphantom","email":"devphantom15@example.com","password":"DevPhantom#12"}
+{"time":"2026-05-18T13:33:13.849975325-06:00","level":"INFO","msg":"user created","username":"binarywolf","email":"binarywolf16@example.com","password":"BinaryWolf@8"}
+{"time":"2026-05-18T13:33:13.894497775-06:00","level":"INFO","msg":"user created","username":"nullpointer","email":"nullpointer17@example.com","password":"NullPointer!500"}
+{"time":"2026-05-18T13:33:13.939392734-06:00","level":"INFO","msg":"user created","username":"cybernomad","email":"cybernomad18@example.com","password":"CyberNomad#23"}
+{"time":"2026-05-18T13:33:13.983881581-06:00","level":"INFO","msg":"user created","username":"gopherx","email":"gopherx19@example.com","password":"GopherX@2026"}
+{"time":"2026-05-18T13:33:14.028576946-06:00","level":"INFO","msg":"user created","username":"tcpwizard","email":"tcpwizard20@example.com","password":"TCPWizard!11"}
+{"time":"2026-05-18T13:33:14.073291807-06:00","level":"INFO","msg":"user created","username":"segfaultsam","email":"segfaultsam21@example.com","password":"SegFaultSam#7"}
+{"time":"2026-05-18T13:33:14.118009643-06:00","level":"INFO","msg":"user created","username":"cloudraider","email":"cloudraider22@example.com","password":"CloudRaider@14"}
+{"time":"2026-05-18T13:33:14.16273829-06:00","level":"INFO","msg":"user created","username":"crypticnode","email":"crypticnode23@example.com","password":"CrypticNode!64"}
+{"time":"2026-05-18T13:33:14.207347843-06:00","level":"INFO","msg":"user created","username":"overflowking","email":"overflowking24@example.com","password":"OverflowKing#2"}
+{"time":"2026-05-18T13:33:14.403665905-06:00","level":"INFO","msg":"telemetry seed started","robotID":"92cecc28-9959-41f2-9e22-2ce5ac14763a","robotName":"BlazeR1","reservationID":"7f1e0606-b681-486f-adf4-676730ac6d28","userID":"84729cf8-6f10-4224-b1e8-196cc197ac38","wsURL":"ws://localhost:8080/v1/robots/92cecc28-9959-41f2-9e22-2ce5ac14763a/7f1e0606-b681-486f-adf4-676730ac6d28/ws/robot-telemetry"}
+{"time":"2026-05-18T13:33:16.404979858-06:00","level":"INFO","msg":"telemetry frame sent","speed":2.73,"direction":60.1,"battery":77}
+{"time":"2026-05-18T13:33:18.40534255-06:00","level":"INFO","msg":"telemetry frame sent","speed":0.7,"direction":234.6,"battery":76}
+{"time":"2026-05-18T13:33:20.405630251-06:00","level":"INFO","msg":"telemetry frame sent","speed":2.34,"direction":309.8,"battery":75}
+{"time":"2026-05-18T13:33:22.405648855-06:00","level":"INFO","msg":"telemetry frame sent","speed":1.43,"direction":140.8,"battery":74}
+{"time":"2026-05-18T13:33:24.405714027-06:00","level":"INFO","msg":"telemetry frame sent","speed":1.03,"direction":63.8,"battery":73}
+{"time":"2026-05-18T13:33:26.405775976-06:00","level":"INFO","msg":"telemetry frame sent","speed":0.67,"direction":330.7,"battery":72}
+{"time":"2026-05-18T13:33:28.404851594-06:00","level":"INFO","msg":"telemetry frame sent","speed":0.17,"direction":303.7,"battery":71}
+{"time":"2026-05-18T13:33:30.404756909-06:00","level":"INFO","msg":"telemetry frame sent","speed":1.4,"direction":347.8,"battery":70}
+{"time":"2026-05-18T13:33:32.406090089-06:00","level":"INFO","msg":"telemetry frame sent","speed":1.35,"direction":194,"battery":69}
+{"time":"2026-05-18T13:33:34.404894921-06:00","level":"INFO","msg":"telemetry frame sent","speed":1.39,"direction":51.1,"battery":68}
+{"time":"2026-05-18T13:33:36.404906163-06:00","level":"INFO","msg":"telemetry frame sent","speed":0.54,"direction":146.3,"battery":67}
+{"time":"2026-05-18T13:33:38.404944077-06:00","level":"INFO","msg":"telemetry frame sent","speed":2.52,"direction":126,"battery":66}
+{"time":"2026-05-18T13:33:40.404984484-06:00","level":"INFO","msg":"telemetry frame sent","speed":2.25,"direction":286.1,"battery":65}
+{"time":"2026-05-18T13:33:42.404893725-06:00","level":"INFO","msg":"telemetry frame sent","speed":2.19,"direction":213,"battery":64}
+{"time":"2026-05-18T13:33:44.404962998-06:00","level":"INFO","msg":"telemetry frame sent","speed":0.17,"direction":277.7,"battery":63}

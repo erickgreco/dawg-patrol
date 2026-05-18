@@ -61,6 +61,17 @@ type Session struct {
 }
 
 /*
+Represents the data payload a robot sends on each telemetry frame.
+Used by MockTelemetry to simulate real robot readings over the WS session.
+*/
+type RobotTelemetryFrame struct {
+	Speed     float64 `json:"speed"`
+	Direction float64 `json:"direction"`
+	Battery   int64   `json:"battery"`
+	Timestamp string  `json:"timestamp"`
+}
+
+/*
 Represents a message sent by a robot including reservationID
 so the Hub can identify to which session it belongs and resends
 to right user

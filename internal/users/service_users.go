@@ -33,6 +33,9 @@ type UsersRepo interface {
 	GetSummaryByID(ctx context.Context, id uuid.UUID) (*UserSummary, error)
 	GetByID(ctx context.Context, id uuid.UUID) (*User, error)
 	CreateUserRequest(ctx context.Context, id uuid.UUID) (*RoleRequest, error)
+	CreateRefreshToken(ctx context.Context, tokenID uuid.UUID, userID uuid.UUID) error
+	GetRefreshToken(ctx context.Context, tokenID uuid.UUID) (*StoredRefreshToken, error)
+	DeleteRefreshToken(ctx context.Context, tokenID uuid.UUID) error
 }
 
 type Service struct {
@@ -118,11 +121,24 @@ func (serv *Service) UserLogIn(ctx context.Context, data *LoginRequest) (*AuthRe
 		return nil, myerrors.ErrTokenGeneration
 	}
 
-	return &AuthResponse{
+	resp := &AuthResponse{
 		Token: token,
 		ID:    user.ID,
 		Role:  user.UserRole,
-	}, nil
+	}
+
+	if user.UserRole == domain.RoleAdmin || user.UserRole == domain.RoleOperator {
+		refreshToken, jti, err := serv.tokenService.GenerateRefresh(user.ID.String(), string(user.UserRole))
+		if err != nil {
+			return nil, myerrors.ErrTokenGeneration
+		}
+		if err := serv.store.CreateRefreshToken(ctx, jti, user.ID); err != nil {
+			return nil, err
+		}
+		resp.RefreshToken = refreshToken
+	}
+
+	return resp, nil
 }
 
 /*
@@ -253,4 +269,63 @@ func statusCheck(status string) string {
 	default:
 		return requestRecommendation
 	}
+}
+
+/*
+RefreshAccessToken validates the incoming refresh JWT, verifies its JTI exists
+in DB, rotates the token (delete old JTI, issue new refresh JWT + JTI), and
+returns a new access token alongside the rotated refresh token.
+Only ADMIN and OPERATOR tokens can reach this path since VIEWER never receives
+a refresh token on login.
+*/
+func (serv *Service) RefreshAccessToken(ctx context.Context, rawToken string) (*AuthResponse, error) {
+	claims, err := serv.tokenService.ValidateRefresh(rawToken)
+	if err != nil {
+		return nil, myerrors.ErrInvalidRefreshToken
+	}
+
+	jti, err := uuid.Parse(claims.ID)
+	if err != nil {
+		return nil, myerrors.ErrInvalidRefreshToken
+	}
+
+	userID, err := claims.UserID()
+	if err != nil {
+		return nil, myerrors.ErrInvalidRefreshToken
+	}
+
+	stored, err := serv.store.GetRefreshToken(ctx, jti)
+	if err != nil {
+		return nil, myerrors.ErrInvalidRefreshToken
+	}
+
+	user, err := serv.store.GetByID(ctx, userID)
+	if err != nil {
+		return nil, myerrors.ErrInvalidRefreshToken
+	}
+
+	if err := serv.store.DeleteRefreshToken(ctx, stored.ID); err != nil {
+		return nil, err
+	}
+
+	accessToken, err := serv.tokenService.Generate(user.ID.String(), string(user.UserRole))
+	if err != nil {
+		return nil, myerrors.ErrTokenGeneration
+	}
+
+	newRefreshToken, newJTI, err := serv.tokenService.GenerateRefresh(user.ID.String(), string(user.UserRole))
+	if err != nil {
+		return nil, myerrors.ErrTokenGeneration
+	}
+
+	if err := serv.store.CreateRefreshToken(ctx, newJTI, user.ID); err != nil {
+		return nil, err
+	}
+
+	return &AuthResponse{
+		Token:        accessToken,
+		RefreshToken: newRefreshToken,
+		ID:           user.ID,
+		Role:         user.UserRole,
+	}, nil
 }

@@ -26,6 +26,10 @@ func ReservationCleanUpWorker(store RobotsRepo) {
 			if err := store.CleanExpiredReservations(ctx); err != nil {
 				myerrors.CleanUpWorkerError(err)
 			}
+
+			if err := store.CleanNeverConnectedReservations(ctx); err != nil {
+				myerrors.CleanUpWorkerError(err)
+			}
 		}
 		runCleanUp()
 

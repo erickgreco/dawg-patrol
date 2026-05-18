@@ -2,13 +2,22 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"log"
 	"log/slog"
+	"math"
+	"math/rand"
+	"net/http"
 	"os"
+	"strings"
+	"time"
 
+	"github.com/erickgreco/dawg-patrol/internal/auth"
 	"github.com/erickgreco/dawg-patrol/internal/robots"
 	"github.com/erickgreco/dawg-patrol/internal/users"
+	"github.com/google/uuid"
+	"github.com/gorilla/websocket"
 )
 
 var usernames = []string{
@@ -192,6 +201,13 @@ func generateRobots(num int) []*robots.RobotRegistration {
 	return genRobots
 }
 
+type telemetryFrame struct {
+	Speed     float64 `json:"speed"`
+	Direction float64 `json:"direction"`
+	Battery   int64   `json:"battery"`
+	Timestamp string  `json:"timestamp"`
+}
+
 func Seed(userService *users.Service, robotService *robots.Service) {
 	ctx := context.Background()
 
@@ -218,6 +234,108 @@ func Seed(userService *users.Service, robotService *robots.Service) {
 		if err != nil {
 			log.Println("error creating robot: ", err)
 			continue
+		}
+	}
+}
+
+/*
+SeedTelemetry simulates a robot WS connection by finding an idle robot and an
+available operator/admin user, creating a reservation, and sending mock telemetry
+frames to the running API server. Requires the server to be up before calling.
+Logs reservationID and robotID to seed.log so they can be used in Bruno to test
+the user-telemetry endpoint.
+*/
+func SeedTelemetry(robotsStore *robots.RobotsStore, usersStore *users.UsersStore, tokenService *auth.TokenService, serverAddr string) {
+	ctx := context.Background()
+
+	file, err := os.OpenFile("./cmd/seed/logs/seed.log", os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0644)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer file.Close()
+	logger := slog.New(slog.NewJSONHandler(file, nil))
+
+	idleRobots, err := robotsStore.GetIdleRobots(ctx)
+	if err != nil || len(idleRobots) == 0 {
+		log.Println("telemetry seed: no idle robots available")
+		return
+	}
+	robot := idleRobots[0]
+
+	user, err := usersStore.GetFirstOperatorOrAdmin(ctx)
+	if err != nil {
+		log.Println("telemetry seed: no operator/admin user found:", err)
+		return
+	}
+
+	reservationID := uuid.New()
+	reservation, err := robotsStore.ReserveRobot(ctx, reservationID, user.ID, robot.ID)
+	if err != nil {
+		log.Println("telemetry seed: failed to create reservation:", err)
+		return
+	}
+
+	token, err := tokenService.Generate(user.ID.String(), string(user.UserRole))
+	if err != nil {
+		log.Println("telemetry seed: failed to generate token:", err)
+		return
+	}
+
+	host := serverAddr
+	if strings.HasPrefix(host, ":") {
+		host = "localhost" + host
+	}
+	wsURL := fmt.Sprintf("ws://%s/v1/robots/%s/%s/ws/robot-telemetry", host, robot.ID, reservation.ID)
+
+	header := http.Header{}
+	header.Add("Authorization", "Bearer "+token)
+
+	conn, _, err := websocket.DefaultDialer.Dial(wsURL, header)
+	if err != nil {
+		log.Println("telemetry seed: failed to connect to WS:", err)
+		return
+	}
+	defer conn.Close()
+
+	logger.Info("telemetry seed started",
+		"robotID", robot.ID,
+		"robotName", robot.Name,
+		"reservationID", reservation.ID,
+		"userID", user.ID,
+		"wsURL", wsURL,
+	)
+	log.Printf("telemetry seed started — robot: %s (%s) | reservation: %s", robot.Name, robot.ID, reservation.ID)
+
+	battery := robot.Battery
+	ticker := time.NewTicker(2 * time.Second)
+	defer ticker.Stop()
+
+	timeout := time.After(30 * time.Second)
+
+	for {
+		select {
+		case <-timeout:
+			log.Println("telemetry seed completed")
+			return
+		case <-ticker.C:
+			if battery > 0 {
+				battery--
+			}
+			frame := telemetryFrame{
+				Speed:     math.Round(rand.Float64()*3.0*100) / 100,
+				Direction: math.Round(rand.Float64()*360*10) / 10,
+				Battery:   battery,
+				Timestamp: time.Now().UTC().Format(time.RFC3339),
+			}
+			data, err := json.Marshal(frame)
+			if err != nil {
+				continue
+			}
+			if err := conn.WriteMessage(websocket.TextMessage, data); err != nil {
+				log.Println("telemetry seed: write error:", err)
+				return
+			}
+			logger.Info("telemetry frame sent", "speed", frame.Speed, "direction", frame.Direction, "battery", frame.Battery)
 		}
 	}
 }

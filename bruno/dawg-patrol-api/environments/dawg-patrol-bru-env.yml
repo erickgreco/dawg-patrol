@@ -2,6 +2,8 @@ name: dawg-patrol-bru-env
 variables:
   - secret: true
     name: token
+  - secret: true
+    name: refresh_token
   - name: base_url
     value: http://localhost:8080
   - name: robotID

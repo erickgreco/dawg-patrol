@@ -1,14 +1,11 @@
 info:
-  name: login-second-user
+  name: login-admin
   type: http
-  seq: 5
+  seq: 6
 
 http:
   method: POST
-  url: http://localhost:8080/v1/login
-  headers:
-    - name: Content-Type
-      value: application/json
+  url: "{{base_url}}/v1/login"
   body:
     type: json
     data: |-
@@ -25,6 +22,7 @@ runtime:
         const data = res.getBody();
 
         bru.setEnvVar("token", data.data.token);
+        bru.setEnvVar("refresh_token", data.data.refresh_token);
 
 settings:
   encodeUrl: true

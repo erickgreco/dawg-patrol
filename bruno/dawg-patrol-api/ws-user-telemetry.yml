@@ -1,10 +1,10 @@
 info:
-  name: ws-robot-telemetry
+  name: ws-user-telemetry
   type: websocket
-  seq: 14
+  seq: 15
 
 websocket:
-  url: "{{base_url}}/v1/robots/{{robotID}}/{{reservationID}}/ws/robot-telemetry"
+  url: "{{base_url}}/v1/robots/{{robotID}}/{{reservationID}}/ws/user-telemetry"
   message:
     type: json
     data: "{}"

@@ -1,24 +1,18 @@
 info:
-  name: login
+  name: refresh
   type: http
-  seq: 4
+  seq: 7
 
 http:
   method: POST
-  url: "{{base_url}}/v1/login"
-  headers:
-    - name: Content-Type
-      value: application/json
+  url: "{{base_url}}/v1/refresh"
   body:
     type: json
     data: |-
       {
-        "email": "bytehunter5@example.com",
-        "password": "ByteHunter!88"
+        "refresh_token": "{{refresh_token}}"
       }
-  auth:
-    type: bearer
-    token: "{{token}}"
+  auth: inherit
 
 runtime:
   scripts:
@@ -27,6 +21,7 @@ runtime:
         const data = res.getBody();
 
         bru.setEnvVar("token", data.data.token);
+        bru.setEnvVar("refresh_token", data.data.refresh_token);
 
 settings:
   encodeUrl: true

@@ -362,3 +362,70 @@ func (r *RobotsStore) ExtendReservation(ctx context.Context, reservationID uuid.
 
 	return err
 }
+
+/*
+Method created to mark when a WS connection is established for a reservation.
+Used by CleanNeverConnectedReservations to distinguish active sessions from
+reservations that were created but never WS-connected.
+*/
+func (r *RobotsStore) MarkWSStarted(ctx context.Context, reservationID uuid.UUID) error {
+	query := `
+		UPDATE robot_reservations
+		SET ws_started_at = NOW()
+		WHERE id = $1
+		AND active = TRUE
+	`
+	_, err := r.db.Exec(ctx, query, reservationID)
+
+	return err
+}
+
+/*
+Method created to clean reservations where the robot was reserved but a WS
+connection was never started within the 5 minute grace period. Identified by
+ws_started_at being NULL, freeing the robot back to IDLE.
+*/
+func (r *RobotsStore) CleanNeverConnectedReservations(ctx context.Context) error {
+	query := `
+		WITH abandoned AS (
+			UPDATE robot_reservations
+			SET active = FALSE
+			WHERE active = TRUE
+			AND ws_started_at IS NULL
+			AND created_at <= NOW() - INTERVAL '5 minutes'
+			RETURNING robot_id
+		)
+		UPDATE robots
+		SET status = 'IDLE'
+		WHERE id IN (
+			SELECT robot_id FROM abandoned
+		);
+	`
+	_, err := r.db.Exec(ctx, query)
+
+	return err
+}
+
+/*
+Method created to immediately deactivate a reservation and free the robot
+when the WS connection closes, avoiding waiting for the periodic cleanup worker.
+*/
+func (r *RobotsStore) DeactivateReservation(ctx context.Context, reservationID uuid.UUID) error {
+	query := `
+		WITH deactivated AS (
+			UPDATE robot_reservations
+			SET active = FALSE
+			WHERE id = $1
+			AND active = TRUE
+			RETURNING robot_id
+		)
+		UPDATE robots
+		SET status = 'IDLE'
+		WHERE id IN (
+			SELECT robot_id FROM deactivated
+		);
+	`
+	_, err := r.db.Exec(ctx, query, reservationID)
+
+	return err
+}

@@ -42,4 +42,7 @@ func main() {
 
 	Seed(userService, robotService)
 	log.Println("seed completed")
+
+	log.Println("starting telemetry seed — API server must be running...")
+	SeedTelemetry(robotStore, userStore, tokenService, env.GetString("ADDR", ":8080"))
 }

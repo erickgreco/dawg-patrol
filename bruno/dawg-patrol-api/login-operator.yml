@@ -1,0 +1,34 @@
+info:
+  name: login-operator
+  type: http
+  seq: 5
+
+http:
+  method: POST
+  url: "{{base_url}}/v1/login"
+  headers:
+    - name: Content-Type
+      value: application/json
+  body:
+    type: json
+    data: |-
+      {
+        "email": "hexdrifter7@example.com",
+        "password": "HexDrifter@22"
+      }
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: after-response
+      code: |-
+        const data = res.getBody();
+
+        bru.setEnvVar("token", data.data.token);
+        bru.setEnvVar("refresh_token", data.data.refresh_token);
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

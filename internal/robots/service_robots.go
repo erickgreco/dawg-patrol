@@ -39,6 +39,9 @@ type RobotsRepo interface {
 	ValidateReservation(ctx context.Context, reservationID, userID, robotID uuid.UUID) (uuid.UUID, error)
 	GetReservationByID(ctx context.Context, reservationID uuid.UUID) (*RobotReservation, error)
 	ExtendReservation(ctx context.Context, reservationID uuid.UUID) error
+	MarkWSStarted(ctx context.Context, reservationID uuid.UUID) error
+	CleanNeverConnectedReservations(ctx context.Context) error
+	DeactivateReservation(ctx context.Context, reservationID uuid.UUID) error
 }
 
 type Service struct {

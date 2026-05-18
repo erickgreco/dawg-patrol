@@ -229,3 +229,107 @@ func (s *UsersStore) CreateUserRequest(ctx context.Context, id uuid.UUID) (*Role
 	}
 	return request, nil
 }
+
+/*
+Method created to retrieve the first available user with OPERATOR or ADMIN role,
+intended to be used by the telemetry seed to obtain valid credentials
+without knowing a specific user in advance
+*/
+func (s *UsersStore) GetFirstOperatorOrAdmin(ctx context.Context) (*User, error) {
+	query := `
+		SELECT id, username, email, role, is_active
+		FROM users
+		WHERE role IN ('OPERATOR', 'ADMIN')
+		LIMIT 1
+	`
+
+	ctx, cancel := context.WithTimeout(ctx, queryTimeDuration)
+	defer cancel()
+
+	user := &User{}
+
+	err := s.db.QueryRow(ctx, query).Scan(
+		&user.ID,
+		&user.Username,
+		&user.Email,
+		&user.UserRole,
+		&user.Active,
+	)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, myerrors.ErrUserNotFound
+		}
+		return nil, err
+	}
+	return user, nil
+}
+
+/*
+Method created to persist a refresh token JTI linked to a user.
+The JTI is extracted from the JWT claims and stored to enable rotation
+and revocation without keeping full token strings in the database.
+*/
+func (s *UsersStore) CreateRefreshToken(ctx context.Context, tokenID uuid.UUID, userID uuid.UUID) error {
+	query := `
+		INSERT INTO refresh_tokens (id, user_id, expires_at)
+		VALUES ($1, $2, NOW() + INTERVAL '7 days')
+	`
+
+	ctx, cancel := context.WithTimeout(ctx, queryTimeDuration)
+	defer cancel()
+
+	_, err := s.db.Exec(ctx, query, tokenID, userID)
+
+	return err
+}
+
+/*
+Method created to retrieve a refresh token JTI from the database, validating
+that it exists and has not expired. Used by RefreshAccessToken to confirm
+the token is still valid before issuing a new pair.
+*/
+func (s *UsersStore) GetRefreshToken(ctx context.Context, tokenID uuid.UUID) (*StoredRefreshToken, error) {
+	query := `
+		SELECT id, user_id, expires_at
+		FROM refresh_tokens
+		WHERE id = $1
+		AND expires_at > NOW()
+	`
+
+	ctx, cancel := context.WithTimeout(ctx, queryTimeDuration)
+	defer cancel()
+
+	stored := &StoredRefreshToken{}
+
+	err := s.db.QueryRow(ctx, query, tokenID).Scan(
+		&stored.ID,
+		&stored.UserID,
+		&stored.ExpiresAt,
+	)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, myerrors.ErrInvalidRefreshToken
+		}
+		return nil, err
+	}
+	return stored, nil
+}
+
+/*
+Method created to delete a refresh token JTI after it has been consumed.
+Part of the rotation strategy — each refresh issues a new JTI and removes
+the previous one, preventing token reuse.
+*/
+func (s *UsersStore) DeleteRefreshToken(ctx context.Context, tokenID uuid.UUID) error {
+	query := `
+		DELETE FROM refresh_tokens
+		WHERE id = $1
+	`
+
+	ctx, cancel := context.WithTimeout(ctx, queryTimeDuration)
+	defer cancel()
+
+	_, err := s.db.Exec(ctx, query, tokenID)
+
+	return err
+}

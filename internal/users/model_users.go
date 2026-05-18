@@ -42,11 +42,12 @@ type LoginRequest struct {
 	Password string `json:"password" validate:"required,max=30"`
 }
 
-// Payload to return
+// Payload to return. RefreshToken is only populated for ADMIN and OPERATOR roles.
 type AuthResponse struct {
-	Token string      `json:"token"`
-	ID    uuid.UUID   `json:"id"`
-	Role  domain.Role `json:"role"`
+	Token        string      `json:"token"`
+	RefreshToken string      `json:"refresh_token,omitempty"`
+	ID           uuid.UUID   `json:"id"`
+	Role         domain.Role `json:"role"`
 }
 
 // Payload to be used once user is auth
@@ -89,4 +90,16 @@ type RoleRequest struct {
 	Status      string    `json:"request_status"`
 	RequestDate time.Time `json:"requested_at"`
 	Response    string    `json:"request_response"`
+}
+
+// Payload received by the refresh endpoint to issue a new access token
+type RefreshRequest struct {
+	RefreshToken string `json:"refresh_token" validate:"required"`
+}
+
+// Internal representation of a stored refresh token, used by the store and service
+type StoredRefreshToken struct {
+	ID        uuid.UUID `json:"id"`
+	UserID    uuid.UUID `json:"user_id"`
+	ExpiresAt time.Time `json:"expires_at"`
 }

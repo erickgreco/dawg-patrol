@@ -1,0 +1,35 @@
+info:
+  name: login-assistant
+  type: http
+  seq: 4
+
+http:
+  method: POST
+  url: "{{base_url}}/v1/login"
+  headers:
+    - name: Content-Type
+      value: application/json
+  body:
+    type: json
+    data: |-
+      {
+        "email": "bytehunter5@example.com",
+        "password": "ByteHunter!88"
+      }
+  auth:
+    type: bearer
+    token: "{{token}}"
+
+runtime:
+  scripts:
+    - type: after-response
+      code: |-
+        const data = res.getBody();
+
+        bru.setEnvVar("token", data.data.token);
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

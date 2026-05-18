@@ -54,6 +54,11 @@ func (app *application) mount() http.Handler {
 			r.Post("/", app.users.LogInHandler)
 		})
 
+		r.Route("/refresh", func(r chi.Router) {
+			r.Use(httprate.Limit(10, time.Minute, httprate.WithKeyFuncs(httprate.KeyByIP, httprate.KeyByEndpoint)))
+			r.Post("/", app.users.RefreshTokenHandler)
+		})
+
 		r.Route("/home", func(r chi.Router) {
 			r.Use(app.middleware.AuthMiddleware)
 			r.Use(httprate.Limit(100, time.Minute, httprate.WithKeyFuncs(app.middleware.KeyByUserID, httprate.KeyByEndpoint)))
@@ -90,6 +95,7 @@ func (app *application) mount() http.Handler {
 					r.Use(app.middleware.ReservationCtxMiddleware)
 
 					r.Get("/ws/robot-telemetry", app.ws.RobotTelemetryWS)
+					r.Get("/ws/user-telemetry", app.ws.UserTelemetryWS)
 				})
 			})
 		})
